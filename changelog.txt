@@ -1,3 +1,5 @@
+0.4.2 Beta
+    - Corrected debug comment that commented out a global.
 0.4.1 Beta
     - Changed internal formatting of file.
 0.4.0 Beta
