@@ -588,6 +588,4 @@ function ZR.UpdateHistorySave(self, memberDB)
     end
 end
 
---@debug@
 ZRoster = ZbGm.ZRoster
---@end-debug@
