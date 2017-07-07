@@ -9,8 +9,8 @@ local L = _G.LibStub("AceLocale-3.0"):GetLocale("zbGuildManager", true)
 -------------------------------------------------------------------------------------
 SLASH_zbGuildManager1 = '/zb';
 local function slashCommandHandler(msg, editbox)
-	if msg == 'show' then	
-		ZbGm:ToggleVisibility()		
+	if msg == 'show' then
+		ZbGm:ToggleVisibility()
 	end
 	if msg == 'db' then
 		if ZbGmHistoryDB.MemberJoinDates then
@@ -36,40 +36,41 @@ SlashCmdList["zbGuildManager"] = slashCommandHandler;
 local function _DateFromString(dateString)
 	local pmonth,pday,pyear;
 	pmonth,pday,pyear =  dateString:match("(%d+)-(%d+)-(%d+)");
-	
+
 	if pmonth == nil then
 		pmonth,pday,pyear =  dateString:match("(%d+)/(%d+)/(%d+)");
 	end
-	
+
 	if pyear and pday and pmonth then
 		pyear  = tonumber(pyear);
 		pday   = tonumber(pday);
 		pmonth = tonumber(pmonth);
-	
+
 		if pyear < 2000 then
 			pyear = pyear + 2000;
-		end 
+		end
 		return time({tz="GMT",day=pday,month=pmonth,year=pyear,hour=0,min=0,sec=0});
 	else
 		return 0;
 	end
 end
 
+-- Converts a time to a relative time string, # to 3mo5dys.
 local function _TimeToRelative(joinDate)
 	if not joinDate then
 		return ""
 	end
-	
+
 	local today = time();
-	
+
 	local delta = today - joinDate
-	
+
 	local years = math.floor((delta) / (86400*365))
 	delta = delta - years * 86400*365
 	local months = math.floor((delta) / (86400*30))
 	delta = delta - months * 86400*30
 	local days = math.floor((delta) / 86400)
-	
+
 	if (joinDate == 0) then
 		return ""
 	elseif years > 1 then
@@ -91,13 +92,15 @@ local function _SplitNameRealm(name, defaultRealm)
 		local realm = matches()
 		if not realm then
 			realm = defaultRealm
-		end 
+		end
 		return nameOnly, realm
 	end
 	return nil
 end
 
 -- Convert date to string
+--   	dateValue - milliseconds time value
+--		display 	- boolean indicating if formating should be used.
 local function _StringFromDate(dateValue, display)
 	local formatConvert = {
 		["MM-DD-YY"] = "%m-%d-%y",
@@ -105,17 +108,17 @@ local function _StringFromDate(dateValue, display)
 		["YY-MM-DD"] = "%y-%m-%d",
 	};
 
-    if dateValue ~= nil and type(dateValue) == "number" and dateValue ~= 0 then
+  if dateValue ~= nil and type(dateValue) == "number" and dateValue ~= 0 then
 		if display then
-		
+
 			local displayformat = ZbGmOptions.dateDisplayFormat;
 			if displayFormat == nil then
-				displayFormat = "%m-%d-%y";				
+				displayFormat = "%m-%d-%y";
 			end
-			
+
 			local dateformat = formatConvert[displayformat];
-			
-			return date(dateformat, dateValue, dateValue, dateValue);			
+
+			return date(dateformat, dateValue, dateValue, dateValue);
 		else
 			return date("%m-%d-%y", dateValue, dateValue, dateValue)
 		end
@@ -124,6 +127,7 @@ local function _StringFromDate(dateValue, display)
     end
 end
 
+-- Trim Spaces of the provided string.
 local function _TrimString(s)
   return (s:gsub("^%s*(.-)%s*$", "%1"))
 end
@@ -160,28 +164,28 @@ function ZbGm:Debug(...)
 	end
 end
 
--- Applies a new rank to a character index. 
+-- Applies a new rank to a character index.
 function ZbGm:ApplyRank(charIndex, newRank)
 		--print(character)
 
 	-- Can the activating player even promote a user.
 	if CanGuildPromote() then
-	
+
 		-- Locate the "Index" in the roster of the player name.
 		local playerIndex, rankNum, oldRank;
 		for i = 1, GetNumGuildMembers() do
 			local fullName, rank, rankIndex, _, class, _, note, officernote, _, _, _, _, _, _, _, _ = GetGuildRosterInfo(i);
-			--print (playerIndex .. " " .. fullName)			
+			--print (playerIndex .. " " .. fullName)
 			if fullName == charIndex then
 				playerIndex = i;
 				oldRank = rankIndex + 1;
 				ZbGm:Debug("Apply Rank: Found Player Index " .. playerIndex);
-				
+
 				-- end the player search for index
 				break
 			end
 		end
-		
+
 		for i = 1, GuildControlGetNumRanks() do
 			if GuildControlGetRankName(i) == newRank then
 				-- Break out of the loop
@@ -190,7 +194,7 @@ function ZbGm:ApplyRank(charIndex, newRank)
 			end
 		end
 
-		-- have player, have rank.		
+		-- have player, have rank.
 		if playerIndex and rankNum and rankNum ~= oldRank then
 			local allowed, reason = IsGuildRankAssignmentAllowed(playerIndex, rankNum)
 			if allowed then
@@ -204,24 +208,24 @@ function ZbGm:ApplyRank(charIndex, newRank)
 	return false
 end
 
-function ZbGm:UpdatePublicNote(character, note) 
+function ZbGm:UpdatePublicNote(character, note)
 	if CanEditPublicNote() then
 		local playerIndex = -1;
-		
+
 		-- Locate the game "index" number of the character to update.  Needed by "SetPublicNote".
 		for i = 1, GetNumGuildMembers() do
-			local fullName, rank, rankIndex, _, class, _, note, officernote, _, _, _, _, _, _, _, _ = GetGuildRosterInfo(i)	
-			--print (playerIndex .. " " .. fullName)			
+			local fullName, rank, rankIndex, _, class, _, note, officernote, _, _, _, _, _, _, _, _ = GetGuildRosterInfo(i)
+			--print (playerIndex .. " " .. fullName)
 			if fullName == character.full then
 				ZbGm:Debug("Located " .. fullName .. " is at " .. i);
 				-- end the player search for index
 				playerIndex = i
-				--print ("Found Player Index " .. playerIndex);				
+				--print ("Found Player Index " .. playerIndex);
 				break
 			end
 		end
-		
-		if playerIndex > 0 then 
+
+		if playerIndex > 0 then
 			ZbGm:Debug("Updating Note: '" .. note .. "'");
 			GuildRosterSetPublicNote(playerIndex, note);
 		else
@@ -235,17 +239,17 @@ function ZbGm.SetNewAlt()
 
 	-- Be sure frame exists.
 	if ZbGm.newMemberFrame then
-	
+
 		-- Be sure a member is selected
 		if ZbGm.newMemberFrame.selectedIndex then
-	
+
 			-- Make sure main screen has character selected
 			if ZbGm.frame.selectedIndex and ZbGm.memberframe:IsVisible() then
-			
-				_G.StaticPopupDialogs["ZbGm_SetGuildMemberAlt"] = 
+
+				_G.StaticPopupDialogs["ZbGm_SetGuildMemberAlt"] =
 				_G.StaticPopupDialogs["ZbGm_SetGuildMemberAlt"] or {
-					text = L["Make %s an alt of %s?"], 
-					button1 = ACCEPT, 
+					text = L["Make %s an alt of %s?"],
+					button1 = ACCEPT,
 					button2 = CANCEL,
 					whileDead = true,
 					hideOnEscape = true,
@@ -253,33 +257,33 @@ function ZbGm.SetNewAlt()
 					timeout = 0,
 					enterClicksFirstButton = true,
 					hasEditBox = false,
-					OnAccept = function(self, data) 		
+					OnAccept = function(self, data)
 
 						-- Update the player note.
 						local playerNameIndex = ZbGm.newMemberFrame.data[ZbGm.newMemberFrame.selectedIndex];
-						local newMainIndex = ZbGm.memberframe.main;	
+						local newMainIndex = ZbGm.memberframe.main;
 
 						local altNote = "(" .. newMainIndex:sub(1,ZbGm.ZRoster.IndexMaxLen) .. ")"
-						
+
 						ZbGm.ZRoster:SetMain(playerNameIndex, newMainIndex);
 						ZbGm:UpdatePublicNote(ZbGm.ZRoster:GetCharacter(playerNameIndex), altNote);
-						
+
 						-- Remove from the unassociated list.
 						table.remove(ZbGm.newMemberFrame.data,ZbGm.newMemberFrame.selectedIndex)
-									
+
 						-- Force main window to refresh to remove the "alt" if window shows only mains.
 						ZbGm.ZRoster:BuildFilteredIndex(ZbGm.frame.searchTextField:GetText(), ZbGm.frame.mainsCheck:GetChecked());
-						
+
 						-- Tell both scroll lists to update.
 						ZbGm:UpdateNewMemberViewTable();
-						
+
 						-- Update member view to show new alt.
 						ZbGm.memberframe.numberOfCharacters = ZbGm.ZRoster:GetCharacterIndices(ZbGm.ZRoster:GetCharacter(playerNameIndex), ZbGm.memberframe.characterList);
-						
+
 						--print("new number " .. ZbGm.memberframe.numberOfCharacters);
-						
+
 						ZbGm:UpdateMemberViewTable();
-						
+
 						-- Update Main View.
 						ZbGm:UpdateMainViewTable();
 
@@ -287,29 +291,29 @@ function ZbGm.SetNewAlt()
 					OnShow = function(self, data)
 						self.editBox:SetText(_StringFromDate(time()));
 					end,
-				}	
-				
+				}
+
 				--print (ZbGm.newMemberFrame.data[ZbGm.newMemberFrame.selectedIndex]);
 				--print (ZbGm.memberframe.main);
 				-- Don't allow alt of self.
 				if ZbGm.newMemberFrame.data[ZbGm.newMemberFrame.selectedIndex] ~= ZbGm.memberframe.main then
-					local dialog = _G.StaticPopup_Show("ZbGm_SetGuildMemberAlt", ZbGm.newMemberFrame.data[ZbGm.newMemberFrame.selectedIndex], ZbGm.memberframe.main);				
+					local dialog = _G.StaticPopup_Show("ZbGm_SetGuildMemberAlt", ZbGm.newMemberFrame.data[ZbGm.newMemberFrame.selectedIndex], ZbGm.memberframe.main);
 				end
 			end
 		end
-	end	
+	end
 end
 
 function ZbGm:SortMainBy(column)
 	if ZbGm.ZRoster.sortIndexBy == column then
 		ZbGm.ZRoster.sortIndexBy = column .. "Desc"
 	else
-		ZbGm.ZRoster.sortIndexBy = column 
+		ZbGm.ZRoster.sortIndexBy = column
 	end
 	PlaySound("UChatScrollButton");
 	ZbGm.frame.selectedIndex = nil
 	ZbGm.ZRoster:SortIndex()
-	ZbGm:UpdateMainViewTable()	
+	ZbGm:UpdateMainViewTable()
 end
 
 function ZbGm:ConfirmRemove()
@@ -322,43 +326,43 @@ function ZbGm:ConfirmRemove()
 			countSelected = countSelected + 1
 		end
 	end
-	
+
 	if countSelected > 0 then
 		local playerName = countSelected .. " characters"
-		_G.StaticPopupDialogs["ZbGm_RemoveGuildMember"] = 
+		_G.StaticPopupDialogs["ZbGm_RemoveGuildMember"] =
 			_G.StaticPopupDialogs["ZbGm_RemoveGuildMember"] or {
-						text = L["Are you sure you wish to remove selected players from the guild?"], 
-						button1 = L["Yes"], 
+						text = L["Are you sure you wish to remove selected players from the guild?"],
+						button1 = L["Yes"],
 						button2 = L["No"],
 						whileDead = true,
 						hideOnEscape = true,
 						showAlert = true,
 						timeout = 0,
 						enterClicksFirstButton = false,
-						OnAccept = function(self, data) 
+						OnAccept = function(self, data)
 							ZbGm:RemoveCharacters()
 						end,
 		}
 
-		local dialog = _G.StaticPopup_Show("ZbGm_RemoveGuildMember", playerName)		
+		local dialog = _G.StaticPopup_Show("ZbGm_RemoveGuildMember", playerName)
 	end
-	
+
 end
 
 function ZbGm.MakeMain()
 	-- Be sure frame exists.
 	if ZbGm.newMemberFrame then
-	
+
 		-- Be sure a member is selected
 		if ZbGm.newMemberFrame.selectedIndex then
-			
+
 			local playerNameIndex = ZbGm.newMemberFrame.data[ZbGm.newMemberFrame.selectedIndex];
-			if ZbGm.debug then print("MakeMain: " .. playerNameIndex) end;
-			
-			_G.StaticPopupDialogs["ZbGm_SetGuildMemberMain"] = 
+			ZbGm:Debug("MakeMain: " .. playerNameIndex);
+
+			_G.StaticPopupDialogs["ZbGm_SetGuildMemberMain"] =
 			_G.StaticPopupDialogs["ZbGm_SetGuildMemberMain"] or {
-						text = "Join Date (format MM-DD-YY) for '%s'", 
-						button1 = ACCEPT, 
+						text = "Join Date (format MM-DD-YY) for '%s'",
+						button1 = ACCEPT,
 						button2 = CANCEL,
 						whileDead = true,
 						hideOnEscape = true,
@@ -366,24 +370,24 @@ function ZbGm.MakeMain()
 						timeout = 0,
 						enterClicksFirstButton = true,
 						hasEditBox = true,
-						OnAccept = function(self, data) 
-							
+						OnAccept = function(self, data)
+
 							if data then
 								local dateString = self.editBox:GetText()
 								local dateValue = _DateFromString(dateString);
 								local newMainCharacter = ZbGm.ZRoster:GetCharacter(data);
-							
+
 								-- Update the player note.
-								ZbGm:UpdatePublicNote(newMainCharacter, dateString)			
-			
+								ZbGm:UpdatePublicNote(newMainCharacter, dateString)
+
 								-- Remove from the unassociated list.
 								table.remove(ZbGm.newMemberFrame.data,ZbGm.newMemberFrame.selectedIndex)
-			
+
 								-- Fix memory model
 								ZbGm.ZRoster.players[data].joindate = dateValue
-			
+
 								-- Tell both scroll lists to update.
-								ZbGm:FixAllNotes(newMainCharacter);													
+								ZbGm:FixAllNotes(newMainCharacter);
 								ZbGm:UpdateNewMemberViewTable()
 								ZbGm:UpdateMainViewTable()
 							end
@@ -392,25 +396,25 @@ function ZbGm.MakeMain()
 							self.editBox:SetText(_StringFromDate(time()));
 						end,
 			}
-			
-			local dialog = _G.StaticPopup_Show("ZbGm_SetGuildMemberMain", ZbGm.ZRoster:GetCharacter(playerNameIndex).name, playerNameIndex, playerNameIndex)	
-			
-			
+
+			local dialog = _G.StaticPopup_Show("ZbGm_SetGuildMemberMain", ZbGm.ZRoster:GetCharacter(playerNameIndex).name, playerNameIndex, playerNameIndex)
+
+
 		end
 	end
 end
 
 
-function ZbGm.ApplyNewRank(self) 
+function ZbGm.ApplyNewRank(self)
 	for i=1, ZbGm.memberframe.numberOfCharacters do
 		if ZbGm.memberframe.selectedList[i] then
 			local success = ZbGm:ApplyRank(ZbGm.memberframe.characterList[i], ZbGm.memberframe.selectedRank)
-			
+
 			if success then
 				ZbGm.ZRoster:SetRank(ZbGm.memberframe.characterList[i], ZbGm.memberframe.selectedRank);
 				ZbGm:UpdateMainViewTable() -- Update Main window
 				ZbGm:UpdateMemberViewTable() -- Update Member Frame
-			end 
+			end
 		end
 	end
 	ZbGm:UpdateMemberViewTable()
@@ -419,38 +423,38 @@ end
 function ZbGm:DissociateSelected()
 	local countSelected = 0;
 	local countRemoved = 0;
-	
+
 	for i=1, ZbGm.memberframe.numberOfCharacters do
 		if ZbGm.memberframe.selectedList[i] then
 			indexSelected = i;
 			countSelected = countSelected + 1;
 		end
-	end	
+	end
 
 	if countSelected > 0 then
-	
+
 		--print(countSelected);
-	
+
 		-- First pass remove alts.
-		for i=1, ZbGm.memberframe.numberOfCharacters do			
+		for i=1, ZbGm.memberframe.numberOfCharacters do
 			if ZbGm.memberframe.selectedList[i] then
-				local removeToon = ZbGm.ZRoster:GetCharacter(ZbGm.memberframe.characterList[i]);				
+				local removeToon = ZbGm.ZRoster:GetCharacter(ZbGm.memberframe.characterList[i]);
 				if removeToon.parentNode then
-					--print(removeToon.full);		
+					--print(removeToon.full);
 					countRemoved = countRemoved+1;
 					ZbGm:UpdatePublicNote(removeToon, "");
 					ZbGm.ZRoster:RemoveChildNode(removeToon);
 					removeToon.parentNode = nil;
 					removeToon.joindate = 0;
-					removeToon.note = "";					
+					removeToon.note = "";
 				end
 			end
 		end
-		
+
 		-- Check if the parent is being removed... can't have child nodes.
-		for i=1, ZbGm.memberframe.numberOfCharacters do			
+		for i=1, ZbGm.memberframe.numberOfCharacters do
 			if ZbGm.memberframe.selectedList[i] then
-				local removeToon = ZbGm.ZRoster:GetCharacter(ZbGm.memberframe.characterList[i]);				
+				local removeToon = ZbGm.ZRoster:GetCharacter(ZbGm.memberframe.characterList[i]);
 				if removeToon.parentNode == nil then
 					if removeToon.childNode ~= nil then
 						print("Warning! Cannot dissociate a main if it has alts.  Change mains first");
@@ -462,11 +466,11 @@ function ZbGm:DissociateSelected()
 						ZbGm:UpdatePublicNote(removeToon, "");
 						countRemoved = countRemoved+1;
 						ZbGm:HideMemberFrame();
-					end 
+					end
 				end
 			end
 		end
-		
+
 		-- BEBUILD THE member frame.
 		local parentToon = ZbGm.ZRoster:GetCharacter(ZbGm.memberframe.main);
 		--print (ZbGm.memberframe.main);
@@ -476,7 +480,7 @@ function ZbGm:DissociateSelected()
 		for i=1, ZbGm.memberframe.numberOfCharacters do
 			--print(ZbGm.memberframe.characterList[i]);
 			ZbGm.memberframe.selectedList[i] = false;
-		end		
+		end
 
 		ZbGm:UpdateMemberViewTable();
 		--print ("count remove = " .. countRemoved);
@@ -491,54 +495,54 @@ function ZbGm:FixAllNotes(character)
 	if character.parentNode ~= nil then
 		parentNode = character.parentNode;
 	end
-	
+
 	-- UGH, have to traverse the structure which shouldn't be observable.
 	local joinDate = _StringFromDate(ZbGm.ZRoster:GetJoinDate(parentNode));
 	local altNote = "(" .. parentNode.full:sub(1,ZbGm.ZRoster.IndexMaxLen) .. ")"
-	
+
 	--print(altNote);
-	
+
 	ZbGm:UpdatePublicNote(parentNode, joinDate)
 	local ptr = parentNode.childNode;
-	
+
 	local loopStop = 1
 	while ptr and loopStop < 100 do
 		loopStop = loopStop + 1;
 		ZbGm:UpdatePublicNote(ptr, altNote);
-		ptr = ptr.nextChild;	
+		ptr = ptr.nextChild;
 	end
 end
 
 function ZbGm:RemoveCharacters()
 	local countSelected = 0
 	local playerIndexImpact = false
-	local newIndexName	
-	
+	local newIndexName
+
 	-- must have UI
 	if ZbGm.memberframe then
 		-- must have main selected
-		if ZbGm.memberframe.main then		
-			for i=ZbGm.memberframe.numberOfCharacters,1,-1 do				
+		if ZbGm.memberframe.main then
+			for i=ZbGm.memberframe.numberOfCharacters,1,-1 do
 				if ZbGm.memberframe.selectedList[i] then
 					--print (i);
 					local toon = ZbGm.ZRoster:GetCharacter(ZbGm.memberframe.characterList[i])
 					local playerName = toon.full;
-					
+
 					--print ("Removing .. " .. playerName)
-					
+
 					for j=i,ZbGm.memberframe.numberOfCharacters-1 do
 						ZbGm.memberframe.characterList[j]=ZbGm.memberframe.characterList[j+1];
 					end
 					ZbGm.memberframe.numberOfCharacters = ZbGm.memberframe.numberOfCharacters - 1;
-					
+
 					---------------------
 					-- EDITING ROSTER! --
 					---------------------
 					GuildUninvite(playerName)
 					ZbGm.frame.totalMembers = ZbGm.frame.totalMembers - 1;
-					
+
 					newIndexName = ZbGm.ZRoster:RemoveCharacter(toon.full);
-				
+
 					-- See if we need to update the "frame" on which character is main.
 					if newIndexName == nil then
 						-- We deleted them, no new parent, so hide the window.
@@ -546,16 +550,16 @@ function ZbGm:RemoveCharacters()
 					elseif newIndexName.full ~= ZbGm.memberframe.main then
 						-- We recieved a new parent name, so update the parent name and leave up.
 						playerIndexImpact = true
-						ZbGm.memberframe.main = newIndexName.full;												
+						ZbGm.memberframe.main = newIndexName.full;
 						ZbGm:UpdateMemberViewTable()
 					end
-				end	
-			end					
-			
+				end
+			end
+
 			if playerIndexImpact then
 				ZbGm:FixAllNotes(newIndexName)
 			end
-			
+
 			-- Update main window.
 			ZbGm.ZRoster:BuildFilteredIndex(ZbGm.frame.searchTextField:GetText(), ZbGm.frame.mainsCheck:GetChecked())
 			ZbGm:UpdateMainViewTable()
@@ -570,15 +574,15 @@ function ZbGm:SelectAllCharacters()
 		for i=1, ZbGm.memberframe.numberOfCharacters do
 			if ZbGm.memberframe.selectedList[i] then
 				countSelected = countSelected + 1
-			end			
+			end
 		end
-		
+
 		local selectVal = (countSelected ~= ZbGm.memberframe.numberOfCharacters)
-		
+
 		for i=1, ZbGm.memberframe.numberOfCharacters do
-			ZbGm.memberframe.selectedList[i] = selectVal		
+			ZbGm.memberframe.selectedList[i] = selectVal
 		end
-		
+
 		ZbGm:UpdateMemberViewTable()
 	end
 end
@@ -593,19 +597,19 @@ function ZbGm.SwapMain()
 				countSelected = countSelected + 1
 			end
 		end
-		
+
 		if countSelected == 1 and ZbGm.memberframe.selectedList[indexSelected] ~= ZbGm.memberframe.main then
 			-- Tell UI List Structure to swap
-		
-			local newMainIndex = ZbGm.memberframe.characterList[indexSelected];		
+
+			local newMainIndex = ZbGm.memberframe.characterList[indexSelected];
 			local newMainToon = ZbGm.ZRoster:GetCharacter(newMainIndex);
-			
+
 			ZbGm.ZRoster:SwapMain(ZbGm.memberframe.main, newMainIndex);
 			ZbGm:FixAllNotes(newMainToon);
-						
+
 			ZbGm:MemberViewSetCharacter(self, newMainToon);
 			ZbGm:UpdateMainViewTable();
-			
+
 		end
 	end
 end
@@ -626,7 +630,7 @@ function ZbGm.GuildRankDropDownInit(self, level, menulist)
 	memberRankIndex = memberRankIndex + 1;  -- adjust to 1-based
 	local _, _, userRankIndex = GetGuildInfo("player");
 	userRankIndex = userRankIndex + 1;	-- adjust to 1-based
-	
+
 	local highestRank = userRankIndex + 1;
 	if not ( CanGuildPromote() ) then
 		highestRank = memberRankIndex;
@@ -635,7 +639,7 @@ function ZbGm.GuildRankDropDownInit(self, level, menulist)
 	if not ( CanGuildDemote() ) then
 		lowestRank = memberRankIndex;
 	end
-	
+
 	for listRank = highestRank, lowestRank do
 		local info = UIDropDownMenu_CreateInfo();
 		info.text = GuildControlGetRankName(listRank);
@@ -659,11 +663,11 @@ function ZbGm.GuildRankDropDownInit(self, level, menulist)
 	end
 end
 
-function ZbGm:LoadRosterFromServer() 
+function ZbGm:LoadRosterFromServer()
 	if _G.IsInGuild() then
 		ZbGm:Debug("Loading Guild Roster");
 		ZbGm.loadedTime = time();
-		
+
 		-- Determine the guild and default realm.
 		local guildName, gRank, gRankIndex, gRealm = GetGuildInfo("player");
 		local numMembers, numOnline, numOnlineAndMobile = GetNumGuildMembers()
@@ -672,43 +676,43 @@ function ZbGm:LoadRosterFromServer()
 			gRealm = GetRealmName();
 			gRealm = gRealm:gsub("%s+", "");
 		end
-		
+
 		ZbGm:Debug("guildName ".. guildName);
 		ZbGm:Debug("Realm ".. gRealm);
-		
+
 		ZbGm.frame.totalMembers = numMembers;
 		ZbGm.frame.statusScale = ZbGm.frame.statuswidth / numMembers;
-		
+
 		--gRealm = "KulTiras"
 
 		for i = 1, numMembers do
-			local fullName, rank, rankIndex, _, _, _, note, officernote, _, _, class, _, _, _, _, _ = GetGuildRosterInfo(i)				
+			local fullName, rank, rankIndex, _, _, _, note, officernote, _, _, class, _, _, _, _, _ = GetGuildRosterInfo(i)
 			local nameOnly, realmOnly = _SplitNameRealm(fullName, gRealm)
-			
+
 			-- Reconstruct full toon name/server since same realms don't have realm.
 			fullName = nameOnly .. "-" .. realmOnly
 
-			local lastOnlineDate = 0		
+			local lastOnlineDate = 0
 			if online then
 				lastOnlineDate = time()
 			else
 				local years, months, days, hours = _G.GetGuildRosterLastOnline(i)
-				
-				if years and months and days and hours then		
+
+				if years and months and days and hours then
 					lastOnlineDate = time() - (years*365*86400) - (months*30*86400) - (days*86400) - (hours*3600)
 				else
 					lastOnlineDate = time()
 				end
 			end
-			
+
 			-- See if this is an ALT by comment
 			local main = string.match(note, "^[Aa][Ll][Tt]:%s*([%a\128-\255-]+)");
 			if main == nil then
 				main = string.match(note, "^%(([%a\128-\255-]+)%)");
 			else
-				
+
 			end
-			
+
 			if main then
 				--print(note .. " " .. main)
 				main = _TrimString(main)
@@ -716,44 +720,44 @@ function ZbGm:LoadRosterFromServer()
 				local parentFullName = mainNameOnly .. "-" .. mainRealmOnly
 				main = parentFullName
 			end
-			
+
 			-- NEW Roster Load
 			local joinDate = _DateFromString(note)
-			ZbGm.ZRoster:AddCharacter(main, nameOnly, realmOnly, rank, class, note, officernote, lastOnlineDate, joinDate) 
+			ZbGm.ZRoster:AddCharacter(main, nameOnly, realmOnly, rank, class, note, officernote, lastOnlineDate, joinDate)
 		end
-		
+
 		-- Tell ZRoster to clean-up, builds linked lists and calls-back on errors.
 		-- Returns a list of alts that were converted to mains because main was missing.
 		local fixIdxList = ZbGm.ZRoster:ReconstructLists(ZbGmHistoryDB.MemberJoinDates);
-		
+
 		-- Save Join Dates locally (HistoryDB) if they have ability to edit and could use the data.
 		-- Fix Notes if missing mains and can access History.
-		
-		
+
+
 		if CanEditPublicNote() then
-			if fixIdxList then		
+			if fixIdxList then
 				for i=1, #fixIdxList do
 					local newMainCharacter = ZbGm.ZRoster:GetCharacter(fixIdxList[i]);
 					ZbGm:FixAllNotes(newMainCharacter);
 				end
 			end
-			
+
 			-- Update saved variables.
 			ZbGm.ZRoster:UpdateHistorySave(ZbGmHistoryDB.MemberJoinDates);
 		end
-		
-		
+
+
 		-- Update the Bar Charts
 		ZbGm.frame.activeStatusBar:SetWidth(math.max(ZbGm.ZRoster.ActiveCount*ZbGm.frame.statusScale,1));
 		ZbGm.frame.lessActiveStatusBar:SetWidth(math.max(ZbGm.ZRoster.SemiActiveCount*ZbGm.frame.statusScale,1));
-		ZbGm.frame.InactiveStatusBar:SetWidth(math.max(ZbGm.ZRoster.InactiveCount*ZbGm.frame.statusScale,1));	
-		ZbGm.frame.AbsentStatusBar:SetWidth(math.max(ZbGm.ZRoster.AbsentCount*ZbGm.frame.statusScale,1));		
+		ZbGm.frame.InactiveStatusBar:SetWidth(math.max(ZbGm.ZRoster.InactiveCount*ZbGm.frame.statusScale,1));
+		ZbGm.frame.AbsentStatusBar:SetWidth(math.max(ZbGm.ZRoster.AbsentCount*ZbGm.frame.statusScale,1));
 
 		--print("Active" .. ZbGm.ZRoster.ActiveCount);
 		--print("semi" .. ZbGm.ZRoster.SemiActiveCount);
 		--print("inactive" .. ZbGm.ZRoster.InactiveCount);
 		--print("absent" .. ZbGm.ZRoster.AbsentCount);
-		
+
 		--print("filter = " .. ZbGm.frame.searchTextField:GetText());
 		ZbGm.ZRoster:BuildFilteredIndex(ZbGm.frame.searchTextField:GetText(), ZbGm.frame.mainsCheck:GetChecked());
 		ZbGm:UpdateMainViewTable();
@@ -766,7 +770,7 @@ function ZbGm.QueuedReload()
 
 		if CanEditPublicNote() then
 			if ZbGm.ZRoster:HasUnassociated() then
-			
+
 				if not ZbGm.frame.unassocBtn:IsEnabled() then
 					ZbGm.frame.unassocBtn:Enable();
 					ZbGm.frame.unassocBtn.Glow:Play();
@@ -784,30 +788,30 @@ function ZbGm.QueuedReload()
 end
 
 
-function ZbGm.OnEvent(self, event, ...) 
+function ZbGm.OnEvent(self, event, ...)
 	if ( not self:IsShown() ) then
 		return;
 	end
-	
+
 	if ( event == "GUILD_ROSTER_UPDATE" ) then
 		--print ("ROSTER EVENT");
-	
+
 		-- Allows the roster data to be loaded only on the first Roster Update Event
-		-- This needs to be modified to allow roster updates, non-destructively.			
+		-- This needs to be modified to allow roster updates, non-destructively.
 		--if not ZbGm.roster_loaded then
 		if arg then
 			print ("arg");
 		end
-		
+
 		local timeSince = time() - ZbGm.loadedTime;
-		
+
 		-- If we ask for a reload too soon, then we queue a load in advance, only once.
 		if timeSince < 60 then
-		
+
 			if not ZbGm.loadQueue then
 				-- Delay and load if first time.
 				ZbGm.loadQueue = true;
-			
+
 				-- Queue for the next 60 second mark.
 				C_Timer.After(60 - timeSince, ZbGm.QueuedReload);
 			end
@@ -818,9 +822,9 @@ function ZbGm.OnEvent(self, event, ...)
 			ZbGm:UpdateMainViewTable()
 
 			if CanEditPublicNote() then
-			
+
 				if ZbGm.ZRoster:HasUnassociated() then
-				
+
 					if not ZbGm.frame.unassocBtn:IsEnabled() then
 						ZbGm.frame.unassocBtn:Enable();
 						ZbGm.frame.unassocBtn.Glow:Play();
@@ -830,10 +834,10 @@ function ZbGm.OnEvent(self, event, ...)
 				else
 					ZbGm.frame.unassocBtn.Glow:Stop();
 					ZbGm.frame.unassocBtn:Disable();
-				end			
+				end
 
 			end
-		end 
+		end
 	end
 end
 
@@ -845,7 +849,7 @@ function ZbGm:UpdateMainViewTable()
 	local line; -- 1 through 5 of our window to scroll
 	local lineplusoffset; -- an index into our data calculated from the scroll offset
 	local numInList = ZbGm.ZRoster:GetFilteredIndexCount()
-	
+
 	FauxScrollFrame_Update(ZbGm.frame.scrollBar, numInList, #ZbGm.frame.table, 20)
 	for line=1, #ZbGm.frame.table do
 		lineplusoffset = line + FauxScrollFrame_GetOffset(ZbGm.frame.scrollBar);
@@ -854,7 +858,7 @@ function ZbGm:UpdateMainViewTable()
 			local toon = ZbGm.ZRoster:GetFilteredCharacter(lineplusoffset)
 			--local player = ZbGm.roster:GetFilteredParent(lineplusoffset)
 			local nameElement = baseElement.."Name"
-					
+
 			if ZbGm.RAID_CLASS_COLORS[toon.class] then
 				_G[nameElement]:SetTextColor(ZbGm.RAID_CLASS_COLORS[toon.class].r, ZbGm.RAID_CLASS_COLORS[toon.class].g, ZbGm.RAID_CLASS_COLORS[toon.class].b)
 			else
@@ -862,15 +866,15 @@ function ZbGm:UpdateMainViewTable()
 			end
 
 			_G[nameElement]:SetText(toon.name);
-			_G[baseElement.."Realm"]:SetText(toon.server);	
+			_G[baseElement.."Realm"]:SetText(toon.server);
 			_G[baseElement.."Seniority"]:SetText(_TimeToRelative(ZbGm.ZRoster:GetJoinDate(toon)));
-			_G[baseElement.."Rank"]:SetText(toon.rank);			
+			_G[baseElement.."Rank"]:SetText(toon.rank);
 			_G[baseElement.."AltsNum"]:SetText(ZbGm.ZRoster:GetNumAlts(toon));
-			
+
 			local lastLog = ZbGm.ZRoster:GetLastLogin(toon);
-			
-			_G[baseElement.."LastLog"]:SetText(_StringFromDate(lastLog, true));			
-			
+
+			_G[baseElement.."LastLog"]:SetText(_StringFromDate(lastLog, true));
+
 			if lastLog then
 				local deltaLog = (time() - lastLog) / (86400*7);
 				if deltaLog < 2 then   		-- Green
@@ -883,10 +887,10 @@ function ZbGm:UpdateMainViewTable()
 				else						-- Red
 					_G[baseElement.."LastLog"]:SetTextColor(1.0, 0.0, 0.0, 0.8);
 				end
-			else				
+			else
 				_G[baseElement.."ActiveBar"]:SetColorTexture(0.0, 1.0, 0.0, 0.0);
-			end			
-			
+			end
+
 			if ZbGm.frame.selectedIndex then
 				if ZbGm.frame.selectedIndex == lineplusoffset then
 					_G[baseElement]:LockHighlight();
@@ -894,35 +898,35 @@ function ZbGm:UpdateMainViewTable()
 					_G[baseElement]:UnlockHighlight();
 				end
 			end
-			
+
 			_G[baseElement]:Show();
 		else
 			_G[baseElement]:Hide();
 		end
 	end
-	
+
 	_G["zbGuildManagerMainFrameResultsLabelValue"]:SetText(string.format("%d/%d",numInList,ZbGm.frame.totalMembers));
 
 end
 
 function ZbGm:MemberViewSetCharacter(self, characterNode)
 	local joinDate = ZbGm.ZRoster:GetJoinDate(characterNode);
-	local lastOn = ZbGm.ZRoster:GetLastLogin(characterNode);			
-	
+	local lastOn = ZbGm.ZRoster:GetLastLogin(characterNode);
+
 	ZbGm.memberframe.main = characterNode.full;
 	ZbGm.memberframe.Title:SetText(characterNode.full);
 	ZbGm.memberframe.joinedText:SetText( _StringFromDate(joinDate,true)..
 		" (" .. _TimeToRelative(joinDate) .. ")")
 	ZbGm.memberframe.lastOnText:SetText(_StringFromDate(lastOn,true)..
 		" (" .. _TimeToRelative(lastOn) .. ")")
-		
-		
+
+
 	-- Setup the data array.
 	ZbGm.memberframe.numberOfCharacters = ZbGm.ZRoster:GetCharacterIndices(characterNode, ZbGm.memberframe.characterList);
 	-- Fix-up the selected list.
 	for i=1, ZbGm.memberframe.numberOfCharacters do
 		ZbGm.memberframe.selectedList[i] = false;
-	end				
+	end
 
 	ZbGm:UpdateMemberViewTable();
 end
@@ -932,27 +936,27 @@ function ZbGm:ScrollTable_OnClick(self, line, button)
 	local lineplusoffset = line + FauxScrollFrame_GetOffset(ZbGm.frame.scrollBar);
 	if lineplusoffset <= ZbGm.ZRoster:GetFilteredIndexCount() then
 		local character = ZbGm.ZRoster:GetFilteredCharacter(lineplusoffset);
-		if character then		
-		
+		if character then
+
 			-- Save in the main table which is selected.
 			if ZbGm.frame.selectedIndex then
 				-- Unhighlight all
 				for line=1,#ZbGm.frame.table do
 					ZbGm.frame.table[line]:UnlockHighlight();
-				end 
+				end
 			end
-			ZbGm.frame.selectedIndex = lineplusoffset	
+			ZbGm.frame.selectedIndex = lineplusoffset
 			self:LockHighlight();
-			
+
 			-- Clear what is selected "Player" member frame
 			ZbGm:MemberScrollTableClearSelection();
-			
+
 			-- Setup member data
 			local mainChar = character;
-			if mainChar.parentNode then mainChar = mainChar.parentNode end	
-			
-			ZbGm:MemberViewSetCharacter(self, mainChar);	
-			ZbGm:ShowMemberFrame();			
+			if mainChar.parentNode then mainChar = mainChar.parentNode end
+
+			ZbGm:MemberViewSetCharacter(self, mainChar);
+			ZbGm:ShowMemberFrame();
 		end
 	end
 end
@@ -961,16 +965,16 @@ function ZbGm:NewMemberScrollTable_OnClick(self, line)
 	local lineplusoffset = line + FauxScrollFrame_GetOffset(ZbGm.newMemberFrame.scrollBar);
 	local numCharacters = #ZbGm.newMemberFrame.data
 	if lineplusoffset <= numCharacters then
-	
+
 		if ZbGm.newMemberFrame.selectedIndex then
 			-- Unhighlight all
 			for line=1,#ZbGm.newMemberFrame.table do
 				_G["zbGmNewMemberTableItem"..line]:UnlockHighlight()
-			end 
+			end
 		end
-		ZbGm.newMemberFrame.selectedIndex = lineplusoffset	
+		ZbGm.newMemberFrame.selectedIndex = lineplusoffset
 		self:LockHighlight()
-		
+
 		-- Disable Set Alt button if another toon is a child of this one, can only be "Set Main"
 		-- Or Set Main's date.
 		--print(ZbGm.newMemberFrame.selectedIndex);
@@ -988,7 +992,7 @@ function ZbGm:MemberScrollTable_OnClick(self, line)
 	local lineplusoffset = line + FauxScrollFrame_GetOffset(ZbGm.memberframe.scrollBar);
 	if lineplusoffset <= ZbGm.memberframe.numberOfCharacters then
 		if not ZbGm.memberframe.selectedList[lineplusoffset] then
-			ZbGm.memberframe.selectedList[lineplusoffset] = true;		
+			ZbGm.memberframe.selectedList[lineplusoffset] = true;
 			self:LockHighlight()
 			PlaySound("UChatScrollButton");
 		else
@@ -1007,9 +1011,9 @@ function ZbGm:MemberScrollTableClearSelection()
 		for line=1,#ZbGm.memberframe.table do
 			--print (type(ZbGm.memberframe.table[line]));
 			--ZbGm.memberframe.table[line]:UnlockHightlight();
-			_G["zbGuildManagerMemberFrameTableItem"..line]:UnlockHighlight()		
+			_G["zbGuildManagerMemberFrameTableItem"..line]:UnlockHighlight()
 		end
-		
+
 		for i=1, #ZbGm.memberframe.selectedList do
 			ZbGm.memberframe.selectedList[i] = false;
 		end
@@ -1017,45 +1021,45 @@ function ZbGm:MemberScrollTableClearSelection()
 end
 
 function ZbGm:UpdateMemberViewTable()
-	local line; 
+	local line;
 	local lineplusoffset; -- an index into our data calculated from the scroll offset
 	--local toon = ZbGm.roster[ZbGm.memberframe.main]
-	
+
 	-- Was removed, hide window
 	--print ("Get Char for " .. ZbGm.memberframe.main);
-	
+
 	local character = ZbGm.ZRoster:GetCharacter(ZbGm.memberframe.main);
 	if character == nil then
 		ZbGm:HideMemberFrame()
 	end
-	
+
 	local numCharacters = ZbGm.ZRoster:GetNumAlts(character);
-	ZbGm:Debug("Number of Alt Characters = " .. numCharacters);	
-	
+	ZbGm:Debug("Number of Alt Characters = " .. numCharacters);
+
 	FauxScrollFrame_Update(ZbGm.memberframe.scrollBar, numCharacters, #ZbGm.memberframe.table, 20)
 	for line=1,#ZbGm.memberframe.table do
 		lineplusoffset = line + FauxScrollFrame_GetOffset(ZbGm.memberframe.scrollBar);
 		if lineplusoffset <= numCharacters then
 			local altToon = ZbGm.ZRoster:GetCharacter(ZbGm.memberframe.characterList[lineplusoffset])
 			local nameElement = "zbGuildManagerMemberFrameTableItem"..line.."Name"
-			
+
 			if altToon.parentNode then
-				_G["zbGuildManagerMemberFrameTableItem"..line.."LeadIcon"]:Hide()			
+				_G["zbGuildManagerMemberFrameTableItem"..line.."LeadIcon"]:Hide()
 			else
 				_G["zbGuildManagerMemberFrameTableItem"..line.."LeadIcon"]:Show()
 			end
-			
+
 			_G[nameElement]:SetText(altToon.name);
-			
+
 			if ZbGm.RAID_CLASS_COLORS[altToon.class] then
 				_G[nameElement]:SetTextColor(ZbGm.RAID_CLASS_COLORS[altToon.class].r, ZbGm.RAID_CLASS_COLORS[altToon.class].g, ZbGm.RAID_CLASS_COLORS[altToon.class].b)
 			else
 				_G[nameElement]:SetTextColor(0.25, 0.25, 0.25)
 			end
 			_G[nameElement]:SetText(altToon.name);
-			_G["zbGuildManagerMemberFrameTableItem"..line.."Rank"]:SetText(altToon.rank);				
+			_G["zbGuildManagerMemberFrameTableItem"..line.."Rank"]:SetText(altToon.rank);
 			_G["zbGuildManagerMemberFrameTableItem"..line]:Show();
-			
+
 			if ZbGm.memberframe.selectedList[lineplusoffset] then
 				_G["zbGuildManagerMemberFrameTableItem"..line]:LockHighlight()
 			else
@@ -1069,36 +1073,36 @@ end
 
 function ZbGm:UpdateNewMemberViewTable()
 
-	local line; 
+	local line;
 	local lineplusoffset; -- an index into our data calculated from the scroll offset
 	--local toon = ZbGm.roster[ZbGm.memberframe.main]
-	
+
 	local numCharacters = #ZbGm.newMemberFrame.data
-	
+
 	FauxScrollFrame_Update(ZbGm.newMemberFrame.scrollBar, numCharacters, #ZbGm.newMemberFrame.table, 20)
 	for line=1,#ZbGm.newMemberFrame.table do
 		lineplusoffset = line + FauxScrollFrame_GetOffset(ZbGm.newMemberFrame.scrollBar);
 		if lineplusoffset <= numCharacters then
 			local altToon = ZbGm.ZRoster:GetCharacter(ZbGm.newMemberFrame.data[lineplusoffset])
 			local nameElement = "zbGmNewMemberTableItem"..line.."Name"
-			
+
 			if mainChar ~= altToon then
-				_G["zbGmNewMemberTableItem"..line.."LeadIcon"]:Hide()			
+				_G["zbGmNewMemberTableItem"..line.."LeadIcon"]:Hide()
 			else
 				_G["zbGmNewMemberTableItem"..line.."LeadIcon"]:Show()
 			end
-			
+
 			_G[nameElement]:SetText(altToon.name);
-			
+
 			if ZbGm.RAID_CLASS_COLORS[altToon.class] then
 				_G[nameElement]:SetTextColor(ZbGm.RAID_CLASS_COLORS[altToon.class].r, ZbGm.RAID_CLASS_COLORS[altToon.class].g, ZbGm.RAID_CLASS_COLORS[altToon.class].b)
 			else
 				_G[nameElement]:SetTextColor(0.25, 0.25, 0.25)
 			end
 			_G[nameElement]:SetText(altToon.name);
-			_G["zbGmNewMemberTableItem"..line.."Rank"]:SetText(altToon.rank);				
+			_G["zbGmNewMemberTableItem"..line.."Rank"]:SetText(altToon.rank);
 			_G["zbGmNewMemberTableItem"..line]:Show();
-			
+
 			if altToon.selected then
 				_G["zbGmNewMemberTableItem"..line]:LockHighlight()
 			else
@@ -1108,15 +1112,15 @@ function ZbGm:UpdateNewMemberViewTable()
 			_G["zbGmNewMemberTableItem"..line]:Hide();
 		end
 	end
-	
+
 end
 
 function ZbGm:ToggleVisibility()
-	if not self.frame then			
+	if not self.frame then
 		ZbGm:CreateMainFrame()
-		
+
 		-- Delay and load if first time.
-		C_Timer.After(2, ZbGm.QueuedReload)		
+		C_Timer.After(2, ZbGm.QueuedReload)
 	end
 
 	if self.frame and self.frame:IsShown() then
@@ -1131,24 +1135,24 @@ function ZbGm:ToggleVisibility()
 		if ZbGmOptions then
 			print(ZbGmOptions.MainFrameX)
 			print(ZbGmOptions.MainFrameY)
-			self.frame:SetPoint("TOPLEFT", UIParent, ZbGmOptions.MainFrameX, ZbGmOptions.MainFrameY-self.frame:GetHeight()/2)		
+			self.frame:SetPoint("TOPLEFT", UIParent, ZbGmOptions.MainFrameX, ZbGmOptions.MainFrameY-self.frame:GetHeight()/2)
 		end
 		--]]
 	end
 end
 
 function ZbGm:ShowNewMemberFrame()
-	if not self.newMemberFrame then			
+	if not self.newMemberFrame then
 		ZbGm:CreateNewMemberFrame()
 	end
 
 	if ZbGm.ZRoster:HasUnassociated() then
-		local unassoc = ZbGm.ZRoster:BuildUnassociatedList();	
+		local unassoc = ZbGm.ZRoster:BuildUnassociatedList();
 		ZbGm.newMemberFrame.data = unassoc;
 		ZbGm.frame.unassocBtn.Glow:Stop();
-			
+
 		ZbGm:UpdateNewMemberViewTable()
-		
+
 		if not self.newMemberFrame:IsVisible() then
 			self.newMemberFrame:SetPoint("TOPRIGHT", ZbGm.frame, "TOPLEFT", 1, -15)
 			PlaySound("igMainMenuOpen");
@@ -1160,45 +1164,45 @@ function ZbGm:ShowNewMemberFrame()
 end
 
 function ZbGm:ShowMemberFrame()
-	if not self.memberframe then			
+	if not self.memberframe then
 		ZbGm:CreateMemberFrame()
 	end
 	-- reset location
 	self.memberframe:SetPoint("TOPLEFT", self.frame, "TOPRIGHT", 1, -15)
-	
+
 	-- Player softer sound if already visible.
 	if self.memberframe:IsVisible() then
 		PlaySound("UChatScrollButton");
 	else
-		PlaySound("igMainMenuOpen");	
+		PlaySound("igMainMenuOpen");
 	end
-				
+
 	self.memberframe:Show()
 end
 
 function ZbGm:ShowExportFrame()
-	if not self.exportframe then			
+	if not self.exportframe then
 		ZbGm:CreateExportFrame();
 	end
 	-- reset location
 	self.exportframe:SetPoint("CENTER");
-	PlaySound("igMainMenuOpen");	
-	
+	PlaySound("igMainMenuOpen");
+
 	ZbGm.exportframe.exportText:SetText(ZbGm.ZRoster:ExportCSV());
-	
+
 	self.exportframe:Show()
 end
 
 function ZbGm:HideMemberFrame()
-	if self.memberframe then	
-		PlaySound("igMainMenuClose");		
+	if self.memberframe then
+		PlaySound("igMainMenuClose");
 		self.memberframe:Hide()
 	end
 end
 
 function ZbGm:HideNewMemberFrame()
-	if self.newMemberFrame then	
-		PlaySound("igMainMenuClose");		
+	if self.newMemberFrame then
+		PlaySound("igMainMenuClose");
 		self.newMemberFrame:Hide()
 	end
 end
@@ -1206,26 +1210,26 @@ end
 --
 -- ZbGm:OnEnter - Handles Tooltip display.
 --
-function ZbGm:OnEnter(self, motion) 
+function ZbGm:OnEnter(self, motion)
 	-- Locate which row is displayed in the main window.
 	local lineplusoffset = self.row + FauxScrollFrame_GetOffset(ZbGm.frame.scrollBar);
-	
+
 	-- Load the character from that line.
 	local toonNameIndex = ZbGm.ZRoster:GetFilteredCharacter(lineplusoffset);
-	
+
 	-- Setup the tool tip and display it.
 	GameTooltip:SetOwner(self, "ANCHOR_LEFT");
 	GameTooltip:SetText(toonNameIndex.note);
 	GameTooltip:AddLine(toonNameIndex.onote);
-	GameTooltip:Show() 	 
+	GameTooltip:Show()
 end
 
 --
 -- ZbGm:OnLeave - Handles Tooltip hide.
 --
 function ZbGm:OnLeave(self, motion)
-	GameTooltip:Hide() 
-end 
+	GameTooltip:Hide()
+end
 
 
 --
@@ -1242,7 +1246,7 @@ function ZbGm:CreateMainFrame()
 		ZbGmHistoryDB = {};
 		ZbGmHistoryDB.MemberJoinDates = {};
 	end
-	
+
 	local mf = CreateFrame("Frame", "zbGuildManagerMainFrame", UIParent, "zbGMPanel");
 	self.frame = mf
 	self.frame.statuswidth = 532;
@@ -1254,30 +1258,30 @@ function ZbGm:CreateMainFrame()
 	mf:SetSize(555, 413);
 	mf:SetPoint("CENTER")
 	mf:RegisterForDrag("LeftButton")
-	
-	mf.totalMembers = 0;
-	
 
-	
+	mf.totalMembers = 0;
+
+
+
 	mf:SetScript("OnEvent", ZbGm.OnEvent)
 	mf:SetScript("OnHide", function(self, event)
 		-- Hide Child Frames if main frame is hidden.
 		PlaySound("igMainMenuClose");
 		ZbGm:HideMemberFrame()
 		ZbGm:HideNewMemberFrame()
-	end)	
-	
-	--local nameSortBtn = ZbGm:CreateSortButton("Name", mf, 125, "TOPLEFT", mf, 10, -30);		
+	end)
+
+	--local nameSortBtn = ZbGm:CreateSortButton("Name", mf, 125, "TOPLEFT", mf, 10, -30);
 	--local sortByRealmButton = ZbGm:CreateSortButton("Rank", mf, 90, nameSortBtn, -2, 0);
-	
+
 	--[[local background = mf:CreateTexture("ZbGMTexture", "ARTWORK");
 	background:SetSize(125,25);
 	background:SetTexture("Interface\\FrameGeneral\\UI-Background-Rock");
 	background:SetPoint("TOPLEFT", mf, 10, -28);
 	background:SetPoint("BOTTOMRIGHT", mf, -6, 345);
 	--]]
-	
-	
+
+
 	mf.activeStatusBar = CreateFrame("StatusBar", nil, mf)
 	mf.activeStatusBar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
 	mf.activeStatusBar:GetStatusBarTexture():SetHorizTile(false)
@@ -1287,7 +1291,7 @@ function ZbGm:CreateMainFrame()
 	mf.activeStatusBar:SetHeight(10)
 	mf.activeStatusBar:SetPoint("TOPLEFT",mf,14,-30);
 	mf.activeStatusBar:SetStatusBarColor(0,1,0)
-	
+
 	mf.lessActiveStatusBar = CreateFrame("StatusBar", nil, mf)
 	mf.lessActiveStatusBar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
 	mf.lessActiveStatusBar:GetStatusBarTexture():SetHorizTile(false)
@@ -1296,8 +1300,8 @@ function ZbGm:CreateMainFrame()
 	mf.lessActiveStatusBar:SetWidth(1);
 	mf.lessActiveStatusBar:SetHeight(10)
 	mf.lessActiveStatusBar:SetPoint("TOPLEFT",mf.activeStatusBar,"TOPRIGHT",0,0);
-	mf.lessActiveStatusBar:SetStatusBarColor(1,1,0)	
-	
+	mf.lessActiveStatusBar:SetStatusBarColor(1,1,0)
+
 	mf.InactiveStatusBar = CreateFrame("StatusBar", nil, mf)
 	mf.InactiveStatusBar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
 	mf.InactiveStatusBar:GetStatusBarTexture():SetHorizTile(false)
@@ -1306,8 +1310,8 @@ function ZbGm:CreateMainFrame()
 	mf.InactiveStatusBar:SetWidth(1);
 	mf.InactiveStatusBar:SetHeight(10)
 	mf.InactiveStatusBar:SetPoint("TOPLEFT",mf.lessActiveStatusBar,"TOPRIGHT",0,0);
-	mf.InactiveStatusBar:SetStatusBarColor(1,0.7,0)		
-	
+	mf.InactiveStatusBar:SetStatusBarColor(1,0.7,0)
+
 	mf.AbsentStatusBar = CreateFrame("StatusBar", nil, mf)
 	mf.AbsentStatusBar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
 	mf.AbsentStatusBar:GetStatusBarTexture():SetHorizTile(false)
@@ -1317,8 +1321,8 @@ function ZbGm:CreateMainFrame()
 	mf.AbsentStatusBar:SetHeight(10)
 	mf.AbsentStatusBar:SetPoint("TOPLEFT",mf.InactiveStatusBar,"TOPRIGHT",0,0);
 	mf.AbsentStatusBar:SetStatusBarColor(1,0,0);
-		
-	
+
+
 	local nameSortBtn = CreateFrame("Button", "zbGuildManagerMainFrameNameSortButton", mf, "zbGMSortButtonTemplate")
 	nameSortBtn:SetSize(125,25)
 	nameSortBtn:SetPoint("TOPLEFT", mf, 10, -43);
@@ -1326,22 +1330,22 @@ function ZbGm:CreateMainFrame()
 	nameSortBtn:SetScript("OnClick", function(self, event)
 		ZbGm:SortMainBy("Name")
 	end)
-	
+
 	local sortByRealmButton = CreateFrame("Button", "zbGuildManagerMainFrameRankSortButton", mf, "zbGMSortButtonTemplate")
 	sortByRealmButton:SetSize(90,25)
 	sortByRealmButton:SetPoint("TOPLEFT", nameSortBtn, "TOPRIGHT", -2, 0)
 	sortByRealmButton:SetText(L["Realm"])
 	sortByRealmButton:SetScript("OnClick", function(self, event)
 		ZbGm:SortMainBy("Realm")
-	end)	
-	
+	end)
+
 	local sortByRankButton = CreateFrame("Button", "zbGuildManagerMainFrameSeniorSortButton", mf, "zbGMSortButtonTemplate")
 	sortByRankButton:SetSize(110,25)
 	sortByRankButton:SetPoint("TOPLEFT", sortByRealmButton, "TOPRIGHT", -2, 0)
-	sortByRankButton:SetText(L["Rank"])	
+	sortByRankButton:SetText(L["Rank"])
 	sortByRankButton:SetScript("OnClick", function(self, event)
 		ZbGm:SortMainBy("Rank")
-	end)	
+	end)
 
 	local sortByJoinButton = CreateFrame("Button", "zbGuildManagerMainFrameJoinSortButton", mf, "zbGMSortButtonTemplate")
 	sortByJoinButton:SetSize(75,25)
@@ -1350,7 +1354,7 @@ function ZbGm:CreateMainFrame()
 	sortByJoinButton:SetScript("OnClick", function(self, event)
 		ZbGm:SortMainBy("Join")
 	end)
-	
+
 
 	local sortByLastOnButton = CreateFrame("Button", "zbGuildManagerMainFrameLastOnSortButton", mf, "zbGMSortButtonTemplate")
 	sortByLastOnButton:SetSize(75,25)
@@ -1359,49 +1363,49 @@ function ZbGm:CreateMainFrame()
 	sortByLastOnButton:SetScript("OnClick", function(self, event)
 		ZbGm:SortMainBy("Log")
 	end)
-	
+
 	local sortByAltNumButton = CreateFrame("Button", "zbGuildManagerMainFrameAltNumSortButton", mf, "zbGMSortButtonTemplate")
 	sortByAltNumButton:SetSize(56,25)
 	sortByAltNumButton:SetPoint("TOPLEFT", sortByLastOnButton, "TOPRIGHT", -2, 0)
 	sortByAltNumButton:SetText(L["# Alts"])
 	sortByAltNumButton:SetScript("OnClick", function(self, event)
 		ZbGm:SortMainBy("Alts")
-	end)	
-	
+	end)
+
 	-- Scroll Frame
 	mf.scrollBar = CreateFrame("ScrollFrame","zbGuildManagerMainFrameScrollBar",mf,"FauxScrollFrameTemplate");
 	mf.scrollBar:SetPoint("TOPLEFT", nameSortBtn, "BOTTOMLEFT", 0, -1);
 	mf.scrollBar:SetPoint("BOTTOMRIGHT", mf, -30, 40);
-	
+
 	local menu = {
 		{ text = "Character", isTitle = true},
 		{ text = "Copy Name", func = function() print("You've chosen option 1"); end },
 		{ text = "Officer Note", func = function() print("You've chosen option 2"); end },
 		{ text = "Note", func = function() print("You've chosen option 3"); end },
 	}
-	
+
 	mf.table = {}
-	
+
 	for i = 1, 15 do
 		mf.table[i] = CreateFrame("Button", "zbGuildManagerMainFrameTableItem" .. i, mf, "zbGMTableButtonTemplate");
 		mf.table[i]:SetPoint("TOPLEFT", nameSortBtn, "BOTTOMLEFT", 4, (i-1)*-20-6);
-	
+
 		mf.table[i]:SetScript("OnClick", function(self, button)
 			ZbGm:ScrollTable_OnClick(self, i, button);
-		end)	
+		end)
 		mf.table[i].row = i;
-		
+
 		mf.table[i]:SetScript("OnEnter", function(self, motion)
 			ZbGm:OnEnter(self, motion);
 		end)
 		mf.table[i]:SetScript("OnLeave", function(self, motion)
 			ZbGm:OnLeave(self, motion);
-		end)		
+		end)
 	end
 
 	-- make closeable with ESC
 	tinsert(UISpecialFrames, "zbGuildManagerMainFrame")
-	
+
 	local titleButton = CreateFrame("Frame", nil, mf)
 	titleButton:SetSize(555,28)
 	titleButton:SetPoint("TOPLEFT")
@@ -1425,13 +1429,13 @@ function ZbGm:CreateMainFrame()
 	mf.scrollBar:SetScript("OnShow", function(self)
 		ZbGm:UpdateMainViewTable()
 	end)
-	
-	mf.scrollBar:SetScript("OnVerticalScroll", function(self,offset)	
+
+	mf.scrollBar:SetScript("OnVerticalScroll", function(self,offset)
 		FauxScrollFrame_OnVerticalScroll(self,offset,20,ZbGm.UpdateMainViewTable)
 	end)
-	
-	mf.resultLabel = mf:CreateFontString("zbGuildManagerMainFrameResultsLabel", "OVERLAY", "GameFontNormal") 
-	mf.resultLabel:SetPoint("BOTTOMRIGHT", -100, 18) 
+
+	mf.resultLabel = mf:CreateFontString("zbGuildManagerMainFrameResultsLabel", "OVERLAY", "GameFontNormal")
+	mf.resultLabel:SetPoint("BOTTOMRIGHT", -100, 18)
 	mf.resultLabel:SetText(L["Total"])
 
 	mf.searchTextField = CreateFrame("EditBox", "zbGuildManagerMainFrameSearch", mf, "SearchBoxTemplate")
@@ -1444,7 +1448,7 @@ function ZbGm:CreateMainFrame()
 	mf.mainsCheck:SetSize(28,28);
 	_G[mf.mainsCheck:GetName() .. "Text"]:SetText(L["Mains/All"]);
 	ZbGm.frame.mainsCheck:SetChecked(ZbGmOptions.filterMains);
-	
+
 	mf.resultValueLabel = mf:CreateFontString("zbGuildManagerMainFrameResultsLabelValue", "OVERLAY", "GameFontHighlight");
 	mf.resultValueLabel:SetPoint("BOTTOMRIGHT", -30, 18);
 	mf.resultValueLabel:SetText("0");
@@ -1456,7 +1460,7 @@ function ZbGm:CreateMainFrame()
 	mf.exportBtn:SetScript("OnClick", function(self, event)
 		ZbGm:ShowExportFrame();
 	end)
-	
+
 	mf.unassocBtn = CreateFrame("Button", "zbGmUnassocBtn", mf, "GlowingPanelButtonTemplate");
 	mf.unassocBtn:SetSize(75,25);
 	mf.unassocBtn:SetText("Unassoc");
@@ -1465,8 +1469,8 @@ function ZbGm:CreateMainFrame()
 		ZbGm:ShowNewMemberFrame();
 	end)
 	mf.unassocBtn:Disable();
-		
-	
+
+
 	-- TITLE BAR TEXT
 	mf.Title:SetText("zbGuildManager (" .. GetAddOnMetadata("zbGuildManager", "Version") .. ")" );
 
@@ -1477,23 +1481,23 @@ function ZbGm:CreateMainFrame()
 	mf.searchTextField:SetScript("OnEditFocusLost", function(self, text)
 		ZbGm.ZRoster:BuildFilteredIndex(mf.searchTextField:GetText(), ZbGm.frame.mainsCheck:GetChecked())
 		ZbGm:UpdateMainViewTable()
-	end)	
+	end)
 
 	-- Capture the "X" button on the search field to "clear" the search.
 	_G["zbGuildManagerMainFrameSearchClearButton"]:SetScript("OnClick",function(self, text)
 		-- Since we overrode the original onclick, call the function it did to clear the field.
 		SearchBoxTemplateClearButton_OnClick(self,text)
 		ZbGm.ZRoster:BuildFilteredIndex(mf.searchTextField:GetText(), ZbGm.frame.mainsCheck:GetChecked())
-		ZbGm:UpdateMainViewTable()		
+		ZbGm:UpdateMainViewTable()
 	end)
-	
+
 	mf.mainsCheck:SetScript("OnClick", function(self, text)
 		ZbGm.ZRoster:BuildFilteredIndex(mf.searchTextField:GetText(), ZbGm.frame.mainsCheck:GetChecked());
 		ZbGmOptions.filterMains = ZbGm.frame.mainsCheck:GetChecked();  -- saves for reload settings.
-		ZbGm:UpdateMainViewTable();		
+		ZbGm:UpdateMainViewTable();
 	end)
-	
-	ZbGm:CreateMemberFrame()	
+
+	ZbGm:CreateMemberFrame()
 end
 
 function ZbGm:CreateMemberFrame()
@@ -1506,25 +1510,25 @@ function ZbGm:CreateMemberFrame()
 	mf:SetSize(320, 350)
 	mf:SetPoint("TOPLEFT", self.frame, "TOPRIGHT", 1, -15)
 	mf:RegisterForDrag("LeftButton")
-	
+
 	-- Joined: 01-01-01 (5yrs)
-	mf.joinedLabel = mf:CreateFontString("zbGmPlayerJoinedLabel", "OVERLAY", "GameFontNormalSmall") 
-	mf.joinedLabel:SetPoint("TOPLEFT", 15, -35) 
+	mf.joinedLabel = mf:CreateFontString("zbGmPlayerJoinedLabel", "OVERLAY", "GameFontNormalSmall")
+	mf.joinedLabel:SetPoint("TOPLEFT", 15, -35)
 	mf.joinedLabel:SetText(L["Joined"] .. ":")
-	
-	mf.joinedText = mf:CreateFontString("zbGmPlayerJoinedLabel", "OVERLAY", "GameFontHighlight") 
-	mf.joinedText:SetPoint("BOTTOMLEFT", mf.joinedLabel, "BOTTOMRIGHT", 5, 0) 
+
+	mf.joinedText = mf:CreateFontString("zbGmPlayerJoinedLabel", "OVERLAY", "GameFontHighlight")
+	mf.joinedText:SetPoint("BOTTOMLEFT", mf.joinedLabel, "BOTTOMRIGHT", 5, 0)
 	mf.joinedText:SetText("01-01-01 (5 yrs)")
 
 	-- Last On: 01-01-01 (5yrs)
-	mf.lastOnLabel = mf:CreateFontString("zbGmPlayerLastOnLabel", "OVERLAY", "GameFontNormalSmall") 
-	mf.lastOnLabel:SetPoint("TOPLEFT", mf.joinedLabel, "BOTTOMLEFT", 0, -5) 
+	mf.lastOnLabel = mf:CreateFontString("zbGmPlayerLastOnLabel", "OVERLAY", "GameFontNormalSmall")
+	mf.lastOnLabel:SetPoint("TOPLEFT", mf.joinedLabel, "BOTTOMLEFT", 0, -5)
 	mf.lastOnLabel:SetText(L["Last On"] .. ":")
-	
-	mf.lastOnText = mf:CreateFontString("zbGmPlayerLastOnLabel", "OVERLAY", "GameFontHighlight") 
-	mf.lastOnText:SetPoint("BOTTOMLEFT", mf.lastOnLabel, "BOTTOMRIGHT", 5, 0) 
+
+	mf.lastOnText = mf:CreateFontString("zbGmPlayerLastOnLabel", "OVERLAY", "GameFontHighlight")
+	mf.lastOnText:SetPoint("BOTTOMLEFT", mf.lastOnLabel, "BOTTOMRIGHT", 5, 0)
 	mf.lastOnText:SetText("00-00-00 (5 yrs)")
-	
+
 	mf.selectAllButton = CreateFrame("Button", "zbGmPlayerLastOnLabelSelectAllButton", mf, "UIPanelButtonTemplate");
 	mf.selectAllButton:SetSize(100,25);
 	mf.selectAllButton:SetText(L["Select All"]);
@@ -1532,40 +1536,40 @@ function ZbGm:CreateMemberFrame()
 	mf.selectAllButton:SetScript("OnClick", function(self, event)
 		ZbGm:SelectAllCharacters();
 	end)
-	
+
 	local sortByNameButton = CreateFrame("Button", "zbGuildManagerMemberFrameSortButton", mf, "zbGMSortButtonTemplate")
 	sortByNameButton:SetSize(125,19)
 	sortByNameButton:SetPoint("TOPLEFT", mf.lastOnLabel, "BOTTOMLEFT", -3, -5)
 	sortByNameButton:SetText(L["Name"])
-	
+
 	local sortByRankButton = CreateFrame("Button", "zbGuildManagerMemberFrameRankSortButton", mf, "zbGMSortButtonTemplate")
 	sortByRankButton:SetSize(125,19)
 	sortByRankButton:SetPoint("TOPLEFT", sortByNameButton, "TOPRIGHT", -2, 0)
 	sortByRankButton:SetText(L["Rank"])
-	
+
 	mf.table = {};			     -- List of buttons on the window.
 	mf.characterList = {};       -- List of character indexes to display.
 	mf.selectedList = {};        -- List of which are selected.
 	mf.numberOfCharacters = 0;   -- Number of active elements in the array of chars/selected.
-	
+
 	for i = 1, 9 do
 		mf.table[i] = CreateFrame("Button", "zbGuildManagerMemberFrameTableItem" .. i, mf, "zbGMAltTableButtonTemplate")
 		mf.table[i]:SetPoint("TOPLEFT", sortByNameButton, "BOTTOMLEFT", 4, (i-1)*-20-6)
 		mf.table[i]:SetScript("OnClick", function(self)
 			--print("handler " .. i)
 			ZbGm:MemberScrollTable_OnClick(self, i)
-		end)	
-	end	
-	
+		end)
+	end
+
 	-- Scroll Frame
 	mf.scrollBar = CreateFrame("ScrollFrame","zbGuildManagerMemberFrameScrollBar",mf,"FauxScrollFrameTemplate")
 	mf.scrollBar:SetPoint("TOPLEFT", sortByNameButton, "BOTTOMRIGHT", 0, -1)
 	mf.scrollBar:SetPoint("BOTTOMRIGHT", mf, -30, 76)
-	
-	mf.scrollBar:SetScript("OnVerticalScroll", function(self,offset)	
+
+	mf.scrollBar:SetScript("OnVerticalScroll", function(self,offset)
 		FauxScrollFrame_OnVerticalScroll(self,offset,20,ZbGm.UpdateMemberViewTable)
 	end)
-	
+
 	-- Create the dropdown, and configure its appearance
 	local dropDown = CreateFrame("Frame", "zbGuildManagerMemberFrameRankDropdown", mf, "UIDropDownMenuTemplate")
 	dropDown:SetPoint("BOTTOMLEFT", mf, 0, 5)
@@ -1574,64 +1578,64 @@ function ZbGm:CreateMemberFrame()
 	UIDropDownMenu_Initialize(dropDown, ZbGm.GuildRankDropDownInit)
 
 	-- Set Main Button
-	mf.setMainBtn = CreateFrame("Button", "zbGmPlayerSetMainBtn", mf, "UIPanelButtonTemplate") 
+	mf.setMainBtn = CreateFrame("Button", "zbGmPlayerSetMainBtn", mf, "UIPanelButtonTemplate")
 	mf.setMainBtn:SetSize(92,25)
-	mf.setMainBtn:SetText(L["Set Main"]) 
-	mf.setMainBtn:SetPoint("BOTTOMLEFT", dropDown, "TOPLEFT", 15, 2)		
+	mf.setMainBtn:SetText(L["Set Main"])
+	mf.setMainBtn:SetPoint("BOTTOMLEFT", dropDown, "TOPLEFT", 15, 2)
 	if CanEditPublicNote() then
 		mf.setMainBtn:SetScript("OnClick", function(self, event)
 			ZbGm:SwapMain()
 		end)
 	else
 		mf.setMainBtn:Disable()
-	end		
-	
+	end
+
 	-- Set Rank Button
-	mf.setRankBtn = CreateFrame("Button", "zbGmPlayerSetRankBtn", mf, "UIPanelButtonTemplate") 
+	mf.setRankBtn = CreateFrame("Button", "zbGmPlayerSetRankBtn", mf, "UIPanelButtonTemplate")
 	mf.setRankBtn:SetSize(92,25)
-	mf.setRankBtn:SetText(L["Set Rank"]) 
-	mf.setRankBtn:SetPoint("BOTTOMRIGHT", mf, -20, 12)	
+	mf.setRankBtn:SetText(L["Set Rank"])
+	mf.setRankBtn:SetPoint("BOTTOMRIGHT", mf, -20, 12)
 	if CanGuildPromote() or CanGuildDemote() then
 		mf.setRankBtn:SetScript("OnClick", function(self, event)
 			ZbGm:ApplyNewRank()
-		end)	
+		end)
 	else
 		mf.setRankBtn:Disable()
 	end
-		
+
 	-- Dissociate Button
-	mf.dissociateBtn = CreateFrame("Button", "zbGmPlayerDissociateBtn", mf, "UIPanelButtonTemplate") 
+	mf.dissociateBtn = CreateFrame("Button", "zbGmPlayerDissociateBtn", mf, "UIPanelButtonTemplate")
 	mf.dissociateBtn:SetSize(92,25)
-	mf.dissociateBtn:SetText(L["Dissociate"]) 
-	mf.dissociateBtn:SetPoint("TOPLEFT", mf.setMainBtn, "TOPRIGHT", 5, 0)	
+	mf.dissociateBtn:SetText(L["Dissociate"])
+	mf.dissociateBtn:SetPoint("TOPLEFT", mf.setMainBtn, "TOPRIGHT", 5, 0)
 	if CanEditPublicNote() then
 		mf.dissociateBtn:SetScript("OnClick", function(self, event)
 			ZbGm:DissociateSelected()
-		end)	
+		end)
 	else
 		mf.dissociateBtn:Disable()
-	end	
+	end
 	--mf.dissociateBtn:Disable()
-	
+
 	-- Kick Button
-	mf.kickBtn = CreateFrame("Button", "zbGmPlayerKickBtn", mf, "UIPanelButtonTemplate") 
+	mf.kickBtn = CreateFrame("Button", "zbGmPlayerKickBtn", mf, "UIPanelButtonTemplate")
 	mf.kickBtn:SetSize(100,25)
-	mf.kickBtn:SetText(L["Remove"]) 
-	mf.kickBtn:SetPoint("TOPLEFT", mf.dissociateBtn, "TOPRIGHT", 5, 0)	
+	mf.kickBtn:SetText(L["Remove"])
+	mf.kickBtn:SetPoint("TOPLEFT", mf.dissociateBtn, "TOPRIGHT", 5, 0)
 	if CanGuildRemove() then
 		mf.kickBtn:SetScript("OnClick", function(self, event)
 			ZbGm:ConfirmRemove()
-		end)	
+		end)
 	else
 		mf.kickBtn:Disable()
-	end	
-	
+	end
+
 	ZbGm.memberframe       = mf
 	ZbGm.memberframe.rankDropdown = dropDown
 
 	-- FAKE DATA
-	--ZbGmHistoryDB.MemberJoinDates["Kurstoon-KulTiras"] = {join=_DateFromString("01-01-08"), update=0};	
-	
+	--ZbGmHistoryDB.MemberJoinDates["Kurstoon-KulTiras"] = {join=_DateFromString("01-01-08"), update=0};
+
 end
 
 function ZbGm:CreateNewMemberFrame()
@@ -1644,64 +1648,64 @@ function ZbGm:CreateNewMemberFrame()
 	mf:SetSize(320, 350)
 	mf:SetPoint("TOPRIGHT", self.frame, "TOPLEFT", 1, -15)
 	mf:RegisterForDrag("LeftButton")
-	
+
 	local sortByNameButton = CreateFrame("Button", "zbGmNewMemberNameSortButton", mf, "zbGMSortButtonTemplate")
 	sortByNameButton:SetSize(125,19)
 	sortByNameButton:SetPoint("TOPLEFT", mf, 3, -35)
 	sortByNameButton:SetText(L["Name"])
-	
+
 	local sortByRankButton = CreateFrame("Button", "zbGmNewMemberRankSortButton", mf, "zbGMSortButtonTemplate")
 	sortByRankButton:SetSize(125,19)
 	sortByRankButton:SetPoint("TOPLEFT", sortByNameButton, "TOPRIGHT", -2, 0)
 	sortByRankButton:SetText(L["Rank"])
-	
+
 	mf.table = {}
-	
+
 	for i = 1, 9 do
 		mf.table[i] = CreateFrame("Button", "zbGmNewMemberTableItem" .. i, mf, "zbGMAltTableButtonTemplate")
 		mf.table[i]:SetPoint("TOPLEFT", sortByNameButton, "BOTTOMLEFT", 4, (i-1)*-20-6)
 		mf.table[i]:SetScript("OnClick", function(self)
 			--print("handler " .. i)
 			ZbGm:NewMemberScrollTable_OnClick(self, i)
-		end)	
-	end	
-	
+		end)
+	end
+
 	-- Scroll Frame
 	mf.scrollBar = CreateFrame("ScrollFrame","zbGmNewMemberScrollBar",mf,"FauxScrollFrameTemplate")
 	mf.scrollBar:SetPoint("TOPLEFT", sortByNameButton, "BOTTOMRIGHT", 0, -1)
 	mf.scrollBar:SetPoint("BOTTOMRIGHT", mf, -30, 76)
-	
-	mf.scrollBar:SetScript("OnVerticalScroll", function(self,offset)	
+
+	mf.scrollBar:SetScript("OnVerticalScroll", function(self,offset)
 		FauxScrollFrame_OnVerticalScroll(self,offset,20,ZbGm.UpdateNewMemberViewTable)
 	end)
-	
+
 	-- Set Main Button
-	mf.setMainBtn = CreateFrame("Button", "zbGmNewPlayerSetMainBtn", mf, "UIPanelButtonTemplate") 
+	mf.setMainBtn = CreateFrame("Button", "zbGmNewPlayerSetMainBtn", mf, "UIPanelButtonTemplate")
 	mf.setMainBtn:SetSize(145,25)
-	mf.setMainBtn:SetText(L["Set Main / Join Date"]) 
-	mf.setMainBtn:SetPoint("BOTTOMLEFT", mf, "BOTTOMLEFT", 15, 15)		
+	mf.setMainBtn:SetText(L["Set Main / Join Date"])
+	mf.setMainBtn:SetPoint("BOTTOMLEFT", mf, "BOTTOMLEFT", 15, 15)
 	if CanEditPublicNote() then
 		mf.setMainBtn:SetScript("OnClick", function(self, event)
 			ZbGm:MakeMain()
 		end)
 	else
 		mf.setMainBtn:Disable()
-	end		
+	end
 	--mf.setMainBtn:Disable()
-	
+
 	-- Set Alt Button
-	mf.setAltBtn = CreateFrame("Button", "zbGmNewPlayerSetAltBtn", mf, "UIPanelButtonTemplate") 
+	mf.setAltBtn = CreateFrame("Button", "zbGmNewPlayerSetAltBtn", mf, "UIPanelButtonTemplate")
 	mf.setAltBtn:SetSize(92,25)
-	mf.setAltBtn:SetText(L["Set Alt"]) 
-	mf.setAltBtn:SetPoint("TOPLEFT", mf.setMainBtn, "TOPRIGHT", 5, 0)	
+	mf.setAltBtn:SetText(L["Set Alt"])
+	mf.setAltBtn:SetPoint("TOPLEFT", mf.setMainBtn, "TOPRIGHT", 5, 0)
 	if CanEditPublicNote() then
 		mf.setAltBtn:SetScript("OnClick", function(self, event)
 			ZbGm:SetNewAlt()
-		end)	
+		end)
 	else
 		mf.setAltBtn:Disable()
-	end	
-	
+	end
+
 	mf.Title:SetText(L["Unassociated Characters"])
 	ZbGm.newMemberFrame       = mf
 end
@@ -1710,17 +1714,17 @@ function ZbGm:CreateExportFrame()
 	local mf = CreateFrame("Frame", "zbGmExportFrame", UIParent, "DialogBoxFrame");
 	mf:SetSize(450, 350);
 	--mf:SetToplevel(true);
-	
+
 	mf.title = mf:CreateFontString("$parentTitle", "OVERLAY", "GameFontNormal") ;
-	mf.title:SetPoint("TOP", 0, -12); 
+	mf.title:SetPoint("TOP", 0, -12);
 	mf.title:SetText(L["Export Data"]);
-	
+
 	local scrollFrame = CreateFrame("ScrollFrame", "$parentScrollFrame", mf, "UIPanelScrollFrameTemplate")
 	scrollFrame:SetSize(400, 250)
 	scrollFrame:SetPoint("TOPLEFT", 16, -32)
 	scrollFrame.ScrollBar:SetPoint("TOPLEFT", scrollFrame, "TOPRIGHT", 6, -13)
-	mf.scrollFrame = scrollFrame	
-	
+	mf.scrollFrame = scrollFrame
+
 	mf.exportText = CreateFrame("EditBox", "zbGmExportExportText", mf, "InputBoxTemplate");
 	mf.exportText:SetMultiLine(true);
 	mf.exportText:SetSize(400, 250)
@@ -1728,15 +1732,15 @@ function ZbGm:CreateExportFrame()
 	--mf.exportText:SetPoint("BOTTOMRIGHT", mf, -6, 345);
 	mf.exportText:SetText("Text");
 	--mf.exportText:Disable();
-	
+
 	scrollFrame:SetScrollChild(mf.exportText)
-	
+
 	ZbGm.exportframe = mf;
 end
 
 --
 -- OPTIONS PANEL CODE
--- 
+--
 
 local function OptionsDateFormatDropdown_Init(self)
 	local formats = {"MM-DD-YY", "MM/DD/YY", "YY-MM-DD"};
@@ -1766,10 +1770,10 @@ local function OptionsDateFormatDropdown_Init(self)
 	end
 end
 
-function ZbGm.OptionsOnEvent(self, event, ...) 
+function ZbGm.OptionsOnEvent(self, event, ...)
 	--print("event" .. event);
 	ZbGm:Debug("OptionsOnEvent");
-	
+
 	if ( event == "ADDON_LOADED" ) then
 		-- Initialising the DropDown box
 		UIDropDownMenu_Initialize(zbGmOptionsFrame_FormatDateDropDown, OptionsDateFormatDropdown_Init);
@@ -1778,7 +1782,7 @@ function ZbGm.OptionsOnEvent(self, event, ...)
 	self:UnregisterEvent("ADDON_LOADED");
 end
 
-function ZbGm:OptionsClose() 
+function ZbGm:OptionsClose()
 	--print("ZbGm: Options Close");
 	ZbGmOptions.debug = zbGmOptionsFrame_Debug:GetChecked();
 	ZbGmOptions.dateDisplayFormat = UIDropDownMenu_GetText(zbGmOptionsFrame_FormatDateDropDown);
@@ -1790,11 +1794,11 @@ function ZbGm:OptionsCancelLoad()
 	if ZbGmOptions.debug then
 		zbGmOptionsFrame_Debug:SetChecked(ZbGmOptions.debug);
 	end
-	
+
 	if ZbGmOptions.dateDisplayFormat then
 		UIDropDownMenu_SetText(zbGmOptionsFrame_FormatDateDropDown, ZbGmOptions.dateDisplayFormat);
 	else
-		UIDropDownMenu_SetText(zbGmOptionsFrame_FormatDateDropDown, "MM-DD-YY");	
+		UIDropDownMenu_SetText(zbGmOptionsFrame_FormatDateDropDown, "MM-DD-YY");
 	end
 end
 
@@ -1802,7 +1806,7 @@ end
 
 -- The GUI OnLoad function.
 --
-function ZbGm:CreateOptionsGUI() 
+function ZbGm:CreateOptionsGUI()
 	if not ZbGmOptions then
 		ZbGmOptions = {};
 	end
@@ -1810,17 +1814,17 @@ function ZbGm:CreateOptionsGUI()
 	local mf = CreateFrame("Frame", "zbGmOptionsFrame", nil, "zbGmOptionsTemplate");
 	ZbGm.optionsPanel = mf;
 	ZbGm.optionsPanel:SetScript("OnEvent", ZbGm.OptionsOnEvent);
-	
+
 	-- Tells add-on the data is loaded.
 	ZbGm.optionsPanel:RegisterEvent("ADDON_LOADED");
 
     zbGmOptionsFrame_DebugText:SetText("Debug");
 
-    mf.name = "ZbGuildManager"; 
+    mf.name = "ZbGuildManager";
     mf.okay = function (self) ZbGm:OptionsClose(); end;
     mf.cancel = function (self) ZbGm:OptionsCancelLoad();  end;
     InterfaceOptions_AddCategory(mf);
-	--ZbGm:OptionsCancelLoad();	
+	--ZbGm:OptionsCancelLoad();
 end
 
 ZbGm:CreateOptionsGUI();
