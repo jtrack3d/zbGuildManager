@@ -1,3 +1,6 @@
+-- Author: @project-author@
+-- Last Updated: @file-dateiso@
+
 local _, ZbGm = ...
 
 -- Convert date to string
@@ -381,23 +384,23 @@ function ZR.ReconstructLists(self, savedDatesDB)
     end
 
     -- Count members in time range.
-    ZRoster.ActiveCount = 0;
-    ZRoster.SemiActiveCount = 0;
-    ZRoster.InactiveCount = 0;
-    ZRoster.AbsentCount = 0;
+    self.ActiveCount = 0;
+    self.SemiActiveCount = 0;
+    self.InactiveCount = 0;
+    self.AbsentCount = 0;
 
     for idx in pairs(self.players) do
         if self.players[idx].paretNode == nil then
             local deltaLog = (time() - self.players[idx].lastlogin) / (86400*7)
             --print (deltaLog)
             if deltaLog <= 2 then   		-- Green
-                ZRoster.ActiveCount = ZRoster.ActiveCount + 1;
+                self.ActiveCount = self.ActiveCount + 1;
             elseif deltaLog <= 4 then  	-- Yellow
-                ZRoster.SemiActiveCount = ZRoster.SemiActiveCount + 1;
+                self.SemiActiveCount = self.SemiActiveCount + 1;
             elseif deltaLog < 19 then  	-- Orange
-                ZRoster.InactiveCount = ZRoster.InactiveCount + 1;
+                self.InactiveCount = self.InactiveCount + 1;
             else						-- Red
-                ZRoster.AbsentCount = ZRoster.AbsentCount + 1;
+                self.AbsentCount = self.AbsentCount + 1;
             end
         end
     end
@@ -588,4 +591,6 @@ function ZR.UpdateHistorySave(self, memberDB)
     end
 end
 
+--@debug@
 ZRoster = ZbGm.ZRoster
+--@end-debug@

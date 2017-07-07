@@ -1,3 +1,6 @@
+-- Author: @project-author@
+-- Last Updated: @file-dateiso@
+
 local AddOn, ZbGm = ...
 
 local zbGuildManager = _G.LibStub("AceAddon-3.0"):NewAddon("zbGuildManager", "AceConsole-3.0");
@@ -1812,13 +1815,15 @@ function ZbGm:CreateOptionsGUI()
 	end
 
 	local mf = CreateFrame("Frame", "zbGmOptionsFrame", nil, "zbGmOptionsTemplate");
+
 	ZbGm.optionsPanel = mf;
 	ZbGm.optionsPanel:SetScript("OnEvent", ZbGm.OptionsOnEvent);
 
 	-- Tells add-on the data is loaded.
 	ZbGm.optionsPanel:RegisterEvent("ADDON_LOADED");
 
-    zbGmOptionsFrame_DebugText:SetText("Debug");
+	zbGmOptionsFrameFormatDate:SetText(L["Date Display Format"]);
+    zbGmOptionsFrame_DebugText:SetText(L["Debug"]);
 
     mf.name = "ZbGuildManager";
     mf.okay = function (self) ZbGm:OptionsClose(); end;

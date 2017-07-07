@@ -9,6 +9,8 @@ local L = LibStub("AceLocale-3.0"):NewLocale("zbGuildManager", "enUS", true, deb
 -- here come the english Translations Strings
 L["# Alts"] = "# Alts";
 L["Are you sure you wish to remove selected players from the guild?"] = "Are you sure you wish to remove selected players from the guild?";
+L["Date Display Format"] = "Date Display Format";
+L["Debug"] = "Debug";
 L["Dissociate"] = "Dissociate";
 L["Export"] = "Export";
 L["Export Data"] = "Export Data";
