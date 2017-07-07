@@ -1,3 +1,6 @@
+0.4.3 Beta
+    - Fixed the debug code workaround.
+    - Added more localization strings for translators.
 0.4.2 Beta
     - Corrected debug comment that commented out a global.
 0.4.1 Beta
