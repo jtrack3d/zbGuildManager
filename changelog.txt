@@ -1,3 +1,5 @@
+0.4.1 Beta
+    - Changed internal formatting of file.
 0.4.0 Beta
    - Added locale data features.
 0.3.1 Beta
@@ -11,7 +13,7 @@
 0.2.8 beta
    - Reworked "main swapping" it wasn't quite complete.  Notes were correct, but internal model was off.
 0.2.7 beta
-   - Found another location where auto-unassoc window was popping up.  And, where I accidentally commented out stuff.  
+   - Found another location where auto-unassoc window was popping up.  And, where I accidentally commented out stuff.
 0.2.6 beta
    - Corrupted alts can cause infinite loop during load.  Added stop to loop.
 0.2.5 beta
@@ -19,4 +21,3 @@
    - Added pulsing visual on "Unassoc" when first available.
 0.2.4 beta
    - Moved the auto-unassoc window to no longer automatic.  Allows more leisure guild setup.
-  
