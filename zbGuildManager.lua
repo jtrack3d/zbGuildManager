@@ -4,7 +4,17 @@
 local AddOn, ZbGm = ...
 
 local zbGuildManager = _G.LibStub("AceAddon-3.0"):NewAddon("zbGuildManager", "AceConsole-3.0");
-local L = _G.LibStub("AceLocale-3.0"):GetLocale("zbGuildManager", true)
+local L = _G.LibStub("AceLocale-3.0"):GetLocale("zbGuildManager", true);
+
+-- Add-on Icon
+local zbGmDB = _G.LibStub("LibDataBroker-1.1"):NewDataObject("zbGM", {
+	type = "data source",
+	text = "zbGm",
+	icon = "Interface\\Icons\\Achievement_General_ClassicBattles",
+	--icon = "zbicon.tga",
+	OnClick = function() ZbGm:ToggleVisibility() end,
+});
+local icon = _G.LibStub("LibDBIcon-1.0");
 
 -------------------------------------------------------------------------------------
 -- REGISTER ADD-ON SLASH COMMAND
@@ -1810,11 +1820,15 @@ end
 -- The GUI OnLoad function.
 --
 function ZbGm:CreateOptionsGUI()
+	ZbGm:Debug(icon);
+
 	if not ZbGmOptions then
 		ZbGmOptions = {};
 	end
 
 	local mf = CreateFrame("Frame", "zbGmOptionsFrame", nil, "zbGmOptionsTemplate");
+
+	icon:Register("zbGm", zbGmDB, nil);
 
 	ZbGm.optionsPanel = mf;
 	ZbGm.optionsPanel:SetScript("OnEvent", ZbGm.OptionsOnEvent);
