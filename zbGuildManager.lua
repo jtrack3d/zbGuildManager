@@ -3,6 +3,7 @@
 
 local AddOn, ZbGm = ...
 
+local BAD_DATE = "    NA";
 local zbGuildManager = _G.LibStub("AceAddon-3.0"):NewAddon("zbGuildManager", "AceConsole-3.0");
 local L = _G.LibStub("AceLocale-3.0"):GetLocale("zbGuildManager", true)
 
@@ -126,7 +127,7 @@ local function _StringFromDate(dateValue, display)
 			return date("%m-%d-%y", dateValue, dateValue, dateValue)
 		end
     else
-        return "   NA"
+        return BAD_DATE;
     end
 end
 
@@ -134,7 +135,6 @@ end
 local function _TrimString(s)
   return (s:gsub("^%s*(.-)%s*$", "%1"))
 end
-
 
 -------------------------------------------------------------------------------------
 -- Addon-Wide Event Handlers
@@ -258,7 +258,6 @@ function ZbGm.SetNewAlt()
 					hideOnEscape = true,
 					showAlert = false,
 					timeout = 0,
-					maxLetters = 8,
 					enterClicksFirstButton = true,
 					hasEditBox = false,
 					OnAccept = function(self, data)
@@ -350,7 +349,37 @@ function ZbGm:ConfirmRemove()
 
 		local dialog = _G.StaticPopup_Show("ZbGm_RemoveGuildMember", playerName)
 	end
+end
 
+function ZbGm.SetMain_OnAccept(self, data)
+	if data then
+		local dateString = self.editBox:GetText()
+		local dateValue = _DateFromString(dateString);
+		local newMainCharacter = ZbGm.ZRoster:GetCharacter(data);
+
+		-- Doesn't parse!
+		if dateValue == BAD_DATE then
+			ZbGm:Debug("Bad Date Format " .. dateString);
+			-- Tell the dialog code to reject the date and stay up.
+			return false;
+		else
+			ZbGm:Debug("Set Main Date " .. dateString);
+		end
+
+		-- Update the player note.
+		ZbGm:UpdatePublicNote(newMainCharacter, dateString)
+
+		-- Remove from the unassociated list.
+		table.remove(ZbGm.newMemberFrame.data,ZbGm.newMemberFrame.selectedIndex)
+
+		-- Fix memory model
+		ZbGm.ZRoster.players[data].joindate = dateValue
+
+		-- Tell both scroll lists to update.
+		ZbGm:FixAllNotes(newMainCharacter);
+		ZbGm:UpdateNewMemberViewTable()
+		ZbGm:UpdateMainViewTable()
+	end
 end
 
 function ZbGm.MakeMain()
@@ -371,31 +400,11 @@ function ZbGm.MakeMain()
 						whileDead = true,
 						hideOnEscape = true,
 						showAlert = false,
+						maxLetters = 8,
 						timeout = 0,
 						enterClicksFirstButton = true,
 						hasEditBox = true,
-						OnAccept = function(self, data)
-
-							if data then
-								local dateString = self.editBox:GetText()
-								local dateValue = _DateFromString(dateString);
-								local newMainCharacter = ZbGm.ZRoster:GetCharacter(data);
-
-								-- Update the player note.
-								ZbGm:UpdatePublicNote(newMainCharacter, dateString)
-
-								-- Remove from the unassociated list.
-								table.remove(ZbGm.newMemberFrame.data,ZbGm.newMemberFrame.selectedIndex)
-
-								-- Fix memory model
-								ZbGm.ZRoster.players[data].joindate = dateValue
-
-								-- Tell both scroll lists to update.
-								ZbGm:FixAllNotes(newMainCharacter);
-								ZbGm:UpdateNewMemberViewTable()
-								ZbGm:UpdateMainViewTable()
-							end
-						end,
+						OnAccept = ZbGm.SetMain_OnAccept,
 						OnShow = function(self, data)
 							self.editBox:SetText(_StringFromDate(time()));
 						end,
