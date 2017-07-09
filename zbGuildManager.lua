@@ -11,7 +11,7 @@ local zbGmDB = _G.LibStub("LibDataBroker-1.1"):NewDataObject("zbGM", {
 	type = "data source",
 	text = "zbGm",
 	icon = "Interface\\Icons\\Achievement_General_ClassicBattles",
-	--icon = "zbicon.tga",
+	--icon = "ZBMini",
 	OnClick = function() ZbGm:ToggleVisibility() end,
 });
 local icon = _G.LibStub("LibDBIcon-1.0");
