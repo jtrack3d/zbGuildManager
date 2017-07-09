@@ -258,6 +258,7 @@ function ZbGm.SetNewAlt()
 					hideOnEscape = true,
 					showAlert = false,
 					timeout = 0,
+					maxLetters = 8,
 					enterClicksFirstButton = true,
 					hasEditBox = false,
 					OnAccept = function(self, data)
