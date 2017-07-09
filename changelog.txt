@@ -1,3 +1,12 @@
+0.4.4 Beta
+    - Fixed officer note not Updating in internal structure
+    - Added colorization to tooltips for notes.
+    - Prevent "joindate" dialog closing if not a valid date
+    - Restricted joindate field to date size.  MM-DD-YY.
+    - Prevent assigning alt to "main" that doesn't have join date, not a main.
+    - Add another localization string for error if main doesn't have join date.
+    - Added "Error" method for replacing print.
+    - Moved dialog "OnAccept" outside of function.
 0.4.3 Beta
     - Fixed the debug code workaround.
     - Added more localization strings for translators.

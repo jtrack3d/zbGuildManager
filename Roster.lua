@@ -81,11 +81,12 @@ function ZR.AddCharacter(self, parentIndex, name, server, rank, class, note, off
     else
         -- All other fields don't change
         local toon = self.players[myIndex];
+        toon.rank = rank;
         toon.lastlogin = login;
         toon.joindate = join;
         toon.note = note;
         toon.childCount = 0;
-        toon.officernote = officernote;
+        toon.onote = officernote;
         toon.parentIndex = parentIndex;
         toon.childNode = nil;  -- reset lineage
         toon.parentNode = nil; -- reset lineage
@@ -314,6 +315,21 @@ function ZR.InsertChildNode(self, node, parentNode)
     if parentNode.childCount then
         parentNode.childCount = 0;
     end
+end
+
+-- Determins if the player by index name is a main.
+function ZR.IsMain(self, mainIndex)
+    local node = self.players[mainIndex:sub(1,self.IndexMaxLen)];
+
+    if node == nil then
+        return false;
+    end
+
+    if node.parentIndex == nil and node.joindate ~= 0 then
+        return true;
+    end
+
+    return false;
 end
 
 function ZR.ReconstructLists(self, savedDatesDB)
