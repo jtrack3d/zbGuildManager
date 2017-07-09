@@ -10,6 +10,8 @@ externals:
         url: https://repos.wowace.com/wow/libstub/trunk
     libs/LibAlts-1.0:
         url: https://repos.wowace.com/wow/libalts-1-0/trunk
+    libs/LibDBIcon-1.0:
+        url: https://repos.wowace.com/wow/libdbicon-1-0/trunk
 
 manual-changelog: changelog.txt
 license-output: LICENSE.txt
