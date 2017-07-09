@@ -7,6 +7,7 @@ debug = true
 local L = LibStub("AceLocale-3.0"):NewLocale("zbGuildManager", "enUS", true, debug)
 
 -- here come the english Translations Strings
+L["%s needs to be set as main first (player has no join date)"] = "%s needs to be set as main first (player has no join date)";
 L["# Alts"] = "# Alts";
 L["Are you sure you wish to remove selected players from the guild?"] = "Are you sure you wish to remove selected players from the guild?";
 L["Date Display Format"] = "Date Display Format";

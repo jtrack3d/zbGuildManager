@@ -7,6 +7,15 @@ local BAD_DATE = "    NA";
 local zbGuildManager = _G.LibStub("AceAddon-3.0"):NewAddon("zbGuildManager", "AceConsole-3.0");
 local L = _G.LibStub("AceLocale-3.0"):GetLocale("zbGuildManager", true)
 
+local c = {
+	BLUE   = BATTLENET_FONT_COLOR_CODE,
+	GOLD   = NORMAL_FONT_COLOR_CODE,
+	GRAY   = "|cff9f9f9f",
+	GREEN  = "|cff7fff7f",
+	ORANGE = "|cffff9f7f",
+	PURPLE = "|cff9f7fff",
+};
+
 -------------------------------------------------------------------------------------
 -- REGISTER ADD-ON SLASH COMMAND
 -- None of this add-on is "created" until the "show" command is executed.
@@ -167,6 +176,11 @@ function ZbGm:Debug(...)
 	end
 end
 
+function ZbGm:Error(...)
+	local prefix = string.format("|cfff442e2%s|r", "zbGM:");
+	DEFAULT_CHAT_FRAME:AddMessage(string.join(" ", prefix, tostringall(...)));
+end
+
 -- Applies a new rank to a character index.
 function ZbGm:ApplyRank(charIndex, newRank)
 		--print(character)
@@ -237,6 +251,44 @@ function ZbGm:UpdatePublicNote(character, note)
 	end
 end
 
+function ZbGm.SetAlt_OnAccept (self, data)
+	-- Cannot set alt if main isn't a main yet.
+
+	-- Update the player note.
+	local playerNameIndex = ZbGm.newMemberFrame.data[ZbGm.newMemberFrame.selectedIndex];
+	local newMainIndex = ZbGm.memberframe.main;
+
+	-- Cannot set as child.
+	if not ZbGm.ZRoster:IsMain(newMainIndex) then
+		ZbGm:Error(string.format(L["%s needs to be set as main first (player has no join date)"], newMainIndex));
+		return nil;
+	end
+
+	local altNote = "(" .. newMainIndex:sub(1,ZbGm.ZRoster.IndexMaxLen) .. ")"
+
+	ZbGm.ZRoster:SetMain(playerNameIndex, newMainIndex);
+	ZbGm:UpdatePublicNote(ZbGm.ZRoster:GetCharacter(playerNameIndex), altNote);
+
+	-- Remove from the unassociated list.
+	table.remove(ZbGm.newMemberFrame.data,ZbGm.newMemberFrame.selectedIndex)
+
+	-- Force main window to refresh to remove the "alt" if window shows only mains.
+	ZbGm.ZRoster:BuildFilteredIndex(ZbGm.frame.searchTextField:GetText(), ZbGm.frame.mainsCheck:GetChecked());
+
+	-- Tell both scroll lists to update.
+	ZbGm:UpdateNewMemberViewTable();
+
+	-- Update member view to show new alt.
+	ZbGm.memberframe.numberOfCharacters = ZbGm.ZRoster:GetCharacterIndices(ZbGm.ZRoster:GetCharacter(playerNameIndex), ZbGm.memberframe.characterList);
+
+	--print("new number " .. ZbGm.memberframe.numberOfCharacters);
+
+	ZbGm:UpdateMemberViewTable();
+
+	-- Update Main View.
+	ZbGm:UpdateMainViewTable();
+end
+
 -- Sets the currently selected unassociated character as an alt of the selected main
 function ZbGm.SetNewAlt()
 
@@ -260,37 +312,7 @@ function ZbGm.SetNewAlt()
 					timeout = 0,
 					enterClicksFirstButton = true,
 					hasEditBox = false,
-					OnAccept = function(self, data)
-
-						-- Update the player note.
-						local playerNameIndex = ZbGm.newMemberFrame.data[ZbGm.newMemberFrame.selectedIndex];
-						local newMainIndex = ZbGm.memberframe.main;
-
-						local altNote = "(" .. newMainIndex:sub(1,ZbGm.ZRoster.IndexMaxLen) .. ")"
-
-						ZbGm.ZRoster:SetMain(playerNameIndex, newMainIndex);
-						ZbGm:UpdatePublicNote(ZbGm.ZRoster:GetCharacter(playerNameIndex), altNote);
-
-						-- Remove from the unassociated list.
-						table.remove(ZbGm.newMemberFrame.data,ZbGm.newMemberFrame.selectedIndex)
-
-						-- Force main window to refresh to remove the "alt" if window shows only mains.
-						ZbGm.ZRoster:BuildFilteredIndex(ZbGm.frame.searchTextField:GetText(), ZbGm.frame.mainsCheck:GetChecked());
-
-						-- Tell both scroll lists to update.
-						ZbGm:UpdateNewMemberViewTable();
-
-						-- Update member view to show new alt.
-						ZbGm.memberframe.numberOfCharacters = ZbGm.ZRoster:GetCharacterIndices(ZbGm.ZRoster:GetCharacter(playerNameIndex), ZbGm.memberframe.characterList);
-
-						--print("new number " .. ZbGm.memberframe.numberOfCharacters);
-
-						ZbGm:UpdateMemberViewTable();
-
-						-- Update Main View.
-						ZbGm:UpdateMainViewTable();
-
-					end,
+					OnAccept = ZbGm.SetAlt_OnAccept,
 					OnShow = function(self, data)
 						self.editBox:SetText(_StringFromDate(time()));
 					end,
@@ -470,9 +492,9 @@ function ZbGm:DissociateSelected()
 				local removeToon = ZbGm.ZRoster:GetCharacter(ZbGm.memberframe.characterList[i]);
 				if removeToon.parentNode == nil then
 					if removeToon.childNode ~= nil then
-						print("Warning! Cannot dissociate a main if it has alts.  Change mains first");
+						ZbGm:Error("Warning! Cannot dissociate a main if it has alts.  Change mains first");
 					else
-						print("Warning! You just dissociated a main, last join date - " .. _StringFromDate(removeToon.joindate));
+						ZbGm:Error("Warning! You just dissociated a main, last join date - " .. _StringFromDate(removeToon.joindate));
 						removeToon.parentNode = nil;
 						removeToon.joindate = 0;
 						removeToon.note = "";
@@ -484,7 +506,7 @@ function ZbGm:DissociateSelected()
 			end
 		end
 
-		-- BEBUILD THE member frame.
+		-- REBUILD THE member frame.
 		local parentToon = ZbGm.ZRoster:GetCharacter(ZbGm.memberframe.main);
 		--print (ZbGm.memberframe.main);
 		ZbGm.memberframe.numberOfCharacters = ZbGm.ZRoster:GetCharacterIndices(parentToon, ZbGm.memberframe.characterList);
@@ -513,12 +535,11 @@ function ZbGm:FixAllNotes(character)
 	local joinDate = _StringFromDate(ZbGm.ZRoster:GetJoinDate(parentNode));
 	local altNote = "(" .. parentNode.full:sub(1,ZbGm.ZRoster.IndexMaxLen) .. ")"
 
-	--print(altNote);
-
+	ZbGm:Debug("Set parent note:");
 	ZbGm:UpdatePublicNote(parentNode, joinDate)
-	local ptr = parentNode.childNode;
 
-	local loopStop = 1
+	local ptr = parentNode.childNode;
+	local loopStop = 1;   -- We use Loop to ensure no infinite loops.
 	while ptr and loopStop < 100 do
 		loopStop = loopStop + 1;
 		ZbGm:UpdatePublicNote(ptr, altNote);
@@ -690,7 +711,7 @@ function ZbGm:LoadRosterFromServer()
 			gRealm = gRealm:gsub("%s+", "");
 		end
 
-		ZbGm:Debug("guildName ".. guildName);
+		ZbGm:Debug("Guild Name ".. guildName);
 		ZbGm:Debug("Realm ".. gRealm);
 
 		ZbGm.frame.totalMembers = numMembers;
@@ -746,7 +767,6 @@ function ZbGm:LoadRosterFromServer()
 		-- Save Join Dates locally (HistoryDB) if they have ability to edit and could use the data.
 		-- Fix Notes if missing mains and can access History.
 
-
 		if CanEditPublicNote() then
 			if fixIdxList then
 				for i=1, #fixIdxList do
@@ -758,7 +778,6 @@ function ZbGm:LoadRosterFromServer()
 			-- Update saved variables.
 			ZbGm.ZRoster:UpdateHistorySave(ZbGmHistoryDB.MemberJoinDates);
 		end
-
 
 		-- Update the Bar Charts
 		ZbGm.frame.activeStatusBar:SetWidth(math.max(ZbGm.ZRoster.ActiveCount*ZbGm.frame.statusScale,1));
@@ -1232,8 +1251,10 @@ function ZbGm:OnEnter(self, motion)
 
 	-- Setup the tool tip and display it.
 	GameTooltip:SetOwner(self, "ANCHOR_LEFT");
-	GameTooltip:SetText(toonNameIndex.note);
-	GameTooltip:AddLine(toonNameIndex.onote);
+	GameTooltip:SetText(string.format("%sNote: %s%s",c.GOLD, c.GRAY,toonNameIndex.note));
+	if CanViewOfficerNote() then
+		GameTooltip:AddLine(string.format("%sONote: %s%s",c.GOLD, c.GRAY,toonNameIndex.onote));
+	end
 	GameTooltip:Show()
 end
 
