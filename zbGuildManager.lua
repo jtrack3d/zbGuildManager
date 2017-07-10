@@ -4,6 +4,7 @@
 local AddOn, ZbGm = ...
 
 local BAD_DATE = "    NA";
+local ZBGMICON = "ZBGMICON";
 local zbGuildManager = _G.LibStub("AceAddon-3.0"):NewAddon("zbGuildManager", "AceConsole-3.0");
 local L = _G.LibStub("AceLocale-3.0"):GetLocale("zbGuildManager", true);
 
@@ -1851,15 +1852,35 @@ end
 -- The GUI OnLoad function.
 --
 function ZbGm:CreateOptionsGUI()
+	ZbGm:Debug("Loading Options GUI");
 	ZbGm:Debug(icon);
 
+	-- If Options don't exist, create them.
 	if not ZbGmOptions then
 		ZbGmOptions = {};
 	end
 
 	local mf = CreateFrame("Frame", "zbGmOptionsFrame", nil, "zbGmOptionsTemplate");
 
-	icon:Register("zbGm", zbGmDB, nil);
+	-- If minimap settings don't exist, create them.
+	if not ZbGmOptions.minimap then
+		ZbGm:Debug("Create minimap");
+		ZbGmOptions.minimap = { hide = false };
+	else
+		ZbGm:Debug(ZbGmOptions.minimap);
+	end
+
+	icon:Register(ZBGMICON, zbGmDB, ZbGmOptions.minimap);
+
+	--print ("after mini");
+	--ZbGmOptions.minimap.hide = true;
+	--print (ZbGmOptions.minimap.hide);
+
+	if ZbGmOptions.minimap.hide then
+		icon:Hide(ZBGMICON);
+	else
+		icon:Show(ZBGMICON);
+	end
 
 	ZbGm.optionsPanel = mf;
 	ZbGm.optionsPanel:SetScript("OnEvent", ZbGm.OptionsOnEvent);
