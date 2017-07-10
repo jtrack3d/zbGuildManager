@@ -21,6 +21,7 @@ L["Mains/All"] = "Mains/All";  -- Toggle Mains or All
 L["Make %s an alt of %s?"] =  "Make %s an alt of %s?";
 L["Name"] = "Name";
 L["No"] = "No";
+L["No character selected"] = "No character selected";
 L["Realm"] = "Realm";
 L["Remove"] = "Remove";
 L["Rank"] = "Rank";

@@ -270,7 +270,8 @@ function ZbGm.SetAlt_OnAccept (self, data)
 	ZbGm:UpdatePublicNote(ZbGm.ZRoster:GetCharacter(playerNameIndex), altNote);
 
 	-- Remove from the unassociated list.
-	table.remove(ZbGm.newMemberFrame.data,ZbGm.newMemberFrame.selectedIndex)
+	table.remove(ZbGm.newMemberFrame.data,ZbGm.newMemberFrame.selectedIndex);
+	ZbGm.newMemberFrame.selectedIndex = nil;
 
 	-- Force main window to refresh to remove the "alt" if window shows only mains.
 	ZbGm.ZRoster:BuildFilteredIndex(ZbGm.frame.searchTextField:GetText(), ZbGm.frame.mainsCheck:GetChecked());
@@ -325,6 +326,8 @@ function ZbGm.SetNewAlt()
 					local dialog = _G.StaticPopup_Show("ZbGm_SetGuildMemberAlt", ZbGm.newMemberFrame.data[ZbGm.newMemberFrame.selectedIndex], ZbGm.memberframe.main);
 				end
 			end
+		else
+			ZbGm:Error(L["No character selected"]);
 		end
 	end
 end
@@ -393,6 +396,7 @@ function ZbGm.SetMain_OnAccept(self, data)
 
 		-- Remove from the unassociated list.
 		table.remove(ZbGm.newMemberFrame.data,ZbGm.newMemberFrame.selectedIndex)
+		ZbGm.newMemberFrame.selectedIndex = nil;
 
 		-- Fix memory model
 		ZbGm.ZRoster.players[data].joindate = dateValue
@@ -980,6 +984,11 @@ function ZbGm:ScrollTable_OnClick(self, line, button)
 			ZbGm.frame.selectedIndex = lineplusoffset
 			self:LockHighlight();
 
+			-- Ensures a character can be set as alt.
+			if ZbGm.newMemberFrame and ZbGm.newMemberFrame:IsVisible() then
+				ZbGm.newMemberFrame.setAltBtn:Enable();
+			end
+
 			-- Clear what is selected "Player" member frame
 			ZbGm:MemberScrollTableClearSelection();
 
@@ -1011,7 +1020,7 @@ function ZbGm:NewMemberScrollTable_OnClick(self, line)
 		-- Or Set Main's date.
 		--print(ZbGm.newMemberFrame.selectedIndex);
 		local toonNode = ZbGm.ZRoster:GetCharacter(ZbGm.newMemberFrame.data[ZbGm.newMemberFrame.selectedIndex]);
-		if toonNode.childNode then
+		if toonNode.childNode or not ZbGm.frame.selectedIndex then
 			ZbGm.newMemberFrame.setAltBtn:Disable();
 		else
 			ZbGm.newMemberFrame.setAltBtn:Enable();
@@ -1066,7 +1075,7 @@ function ZbGm:UpdateMemberViewTable()
 	end
 
 	local numCharacters = ZbGm.ZRoster:GetNumAlts(character);
-	ZbGm:Debug("Number of Alt Characters = " .. numCharacters);
+	ZbGm:Debug(string.format("%s has %d characters.", character.full, numCharacters));
 
 	FauxScrollFrame_Update(ZbGm.memberframe.scrollBar, numCharacters, #ZbGm.memberframe.table, 20)
 	for line=1,#ZbGm.memberframe.table do
@@ -1075,7 +1084,7 @@ function ZbGm:UpdateMemberViewTable()
 			local altToon = ZbGm.ZRoster:GetCharacter(ZbGm.memberframe.characterList[lineplusoffset])
 			local nameElement = "zbGuildManagerMemberFrameTableItem"..line.."Name"
 
-			if altToon.parentNode then
+			if altToon.parentNode or altToon.joindate == 0 then
 				_G["zbGuildManagerMemberFrameTableItem"..line.."LeadIcon"]:Hide()
 			else
 				_G["zbGuildManagerMemberFrameTableItem"..line.."LeadIcon"]:Show()
@@ -1528,6 +1537,16 @@ function ZbGm:CreateMainFrame()
 	mf.mainsCheck:SetScript("OnClick", function(self, text)
 		ZbGm.ZRoster:BuildFilteredIndex(mf.searchTextField:GetText(), ZbGm.frame.mainsCheck:GetChecked());
 		ZbGmOptions.filterMains = ZbGm.frame.mainsCheck:GetChecked();  -- saves for reload settings.
+
+		-- Clear selected
+		if ZbGm.frame.selectedIndex then
+			ZbGm.frame.selectedIndex = nil;
+			-- Unhighlight all
+			for line=1,#ZbGm.frame.table do
+				ZbGm.frame.table[line]:UnlockHighlight();
+			end
+		end
+
 		ZbGm:UpdateMainViewTable();
 	end)
 
