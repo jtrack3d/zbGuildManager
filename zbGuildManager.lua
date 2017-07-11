@@ -4,8 +4,19 @@
 local AddOn, ZbGm = ...
 
 local BAD_DATE = "    NA";
+local ZBGMICON = "ZBGMICON";
 local zbGuildManager = _G.LibStub("AceAddon-3.0"):NewAddon("zbGuildManager", "AceConsole-3.0");
-local L = _G.LibStub("AceLocale-3.0"):GetLocale("zbGuildManager", true)
+local L = _G.LibStub("AceLocale-3.0"):GetLocale("zbGuildManager", true);
+
+-- Add-on Icon
+local zbGmDB = _G.LibStub("LibDataBroker-1.1"):NewDataObject(ZBGMICON, {
+	type = "data source",
+	text = "zbGm",
+	icon = "Interface\\Icons\\Achievement_General_ClassicBattles",
+	--icon = "ZBMini",
+	OnClick = function() ZbGm:ToggleVisibility() end,
+});
+local icon = _G.LibStub("LibDBIcon-1.0");
 
 local c = {
 	BLUE   = BATTLENET_FONT_COLOR_CODE,
@@ -85,15 +96,15 @@ local function _TimeToRelative(joinDate)
 	local days = math.floor((delta) / 86400)
 
 	if (joinDate == 0) then
-		return ""
+		return "";
 	elseif years > 1 then
-		return years .. "y"
+		return years .. "y";
 	elseif years > 0 then
-		return "1y " .. months .. "m"
+		return "1y " .. months .. "m";
 	elseif months > 0 then
-		return months .. "m " .. days .. "d"
+		return months .. "m " .. days .. "d";
 	else
-		return days .. "d"
+		return days .. "d";
 	end
 end
 
@@ -1528,7 +1539,7 @@ function ZbGm:CreateMainFrame()
 
 	-- Capture the "X" button on the search field to "clear" the search.
 	_G["zbGuildManagerMainFrameSearchClearButton"]:SetScript("OnClick",function(self, text)
-		-- Since we overrode the original onclick, call the function it did to clear the field.
+		-- Since we overrode the original onclick, call the method it did to clear the field.
 		SearchBoxTemplateClearButton_OnClick(self,text)
 		ZbGm.ZRoster:BuildFilteredIndex(mf.searchTextField:GetText(), ZbGm.frame.mainsCheck:GetChecked())
 		ZbGm:UpdateMainViewTable()
@@ -1823,14 +1834,38 @@ local function OptionsDateFormatDropdown_Init(self)
 	end
 end
 
+function ZbGm:Variables_Loaded()
+	-- Initialising the DropDown box
+	UIDropDownMenu_Initialize(zbGmOptionsFrame_FormatDateDropDown, OptionsDateFormatDropdown_Init);
+	ZbGm:OptionsCancelLoad();
+
+	-- If minimap settings don't exist, create them.
+	if not ZbGmOptions.minimap then
+		ZbGm:Debug("Create minimap");
+		ZbGmOptions.minimap = { hide = false };
+	else
+		ZbGm:Debug(ZbGmOptions.minimap);
+	end
+
+	icon:Register(ZBGMICON, zbGmDB, ZbGmOptions.minimap);
+
+	--print ("after mini");
+	--ZbGmOptions.minimap.hide = true;
+	--print (ZbGmOptions.minimap.hide);
+
+	if ZbGmOptions.minimap.hide then
+		icon:Hide(ZBGMICON);
+	else
+		icon:Show(ZBGMICON);
+	end
+end
+
 function ZbGm.OptionsOnEvent(self, event, ...)
 	--print("event" .. event);
 	ZbGm:Debug("OptionsOnEvent");
 
 	if ( event == "ADDON_LOADED" ) then
-		-- Initialising the DropDown box
-		UIDropDownMenu_Initialize(zbGmOptionsFrame_FormatDateDropDown, OptionsDateFormatDropdown_Init);
-		ZbGm:OptionsCancelLoad();
+		ZbGm:Variables_Loaded();
 	end
 	self:UnregisterEvent("ADDON_LOADED");
 end
@@ -1860,6 +1895,11 @@ end
 -- The GUI OnLoad function.
 --
 function ZbGm:CreateOptionsGUI()
+	print ("HERE");
+	ZbGm:Debug("Loading Options GUI");
+	ZbGm:Debug(icon);
+
+	-- If Options don't exist, create them.
 	if not ZbGmOptions then
 		ZbGmOptions = {};
 	end
