@@ -1,3 +1,6 @@
+1.0 Release
+    - Figure it's pretty close to release worthy.
+    - Added minimap icon.
 0.4.4 Beta
     - Fixed officer note not Updating in internal structure
     - Added colorization to tooltips for notes.
