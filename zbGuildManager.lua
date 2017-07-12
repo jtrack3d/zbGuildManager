@@ -1897,7 +1897,7 @@ end
 function ZbGm:CreateOptionsGUI()
 	-- If Options don't exist, create them.
 	-- CANNOT call debug here because debug=true is not loaded yet.
-	
+
 	if not ZbGmOptions then
 		ZbGmOptions = {};
 	end
