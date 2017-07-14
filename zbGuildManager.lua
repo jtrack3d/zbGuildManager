@@ -301,6 +301,36 @@ function ZbGm.SetAlt_OnAccept (self, data)
 	ZbGm:UpdateMainViewTable();
 end
 
+function ZbGm.CopyCharacterName(self, arg1, arg2, checked)
+	ZbGm:Debug("Copy Character Name");
+
+	if ZbGm.frame.contextMenuFrame.character then
+		ZbGm:Debug(ZbGm.frame.contextMenuFrame.character.full);
+		_G.StaticPopupDialogs["ZbGm_CopyCharacterName"] =
+		_G.StaticPopupDialogs["ZbGm_CopyCharacterName"] or {
+					text = "Use CTRL+C to copy name",
+					button1 = OKAY,
+					whileDead = true,
+					hideOnEscape = true,
+					showAlert = false,
+					timeout = 0,
+					enterClicksFirstButton = true,
+					hasEditBox = true,
+					OnShow = function(self, data)
+						self.editBox:SetText(ZbGm.frame.contextMenuFrame.character.full);
+						self.editBox:HighlightText(0, -1);
+					end,
+		}
+
+		local dialog = _G.StaticPopup_Show("ZbGm_CopyCharacterName");
+	end
+end
+
+function ZbGm.EditOfficerNote(self, arg1, arg2, checked)
+	ZbGm:Debug("Edit Officer Note");
+	ZbGm:Debug(ZbGm.frame.contextMenuFrame.character.full);
+end
+
 -- Sets the currently selected unassociated character as an alt of the selected main
 function ZbGm.SetNewAlt()
 
@@ -978,37 +1008,52 @@ function ZbGm:MemberViewSetCharacter(self, characterNode)
 	ZbGm:UpdateMemberViewTable();
 end
 
+ZbGm.contextMenu = {
+	{ text = "Character", isTitle = true},
+	{ text = "Copy Name", hasArrow = false, func = ZbGm.CopyCharacterName },
+	{ text = "Officer Note", func = ZbGm.EditOfficerNote },
+	{ text = "Note", func = function() print("You've chosen option 3"); end },
+}
 
+-- Main Window Item Mouse Click
 function ZbGm:ScrollTable_OnClick(self, line, button)
 	local lineplusoffset = line + FauxScrollFrame_GetOffset(ZbGm.frame.scrollBar);
 	if lineplusoffset <= ZbGm.ZRoster:GetFilteredIndexCount() then
 		local character = ZbGm.ZRoster:GetFilteredCharacter(lineplusoffset);
 		if character then
 
-			-- Save in the main table which is selected.
-			if ZbGm.frame.selectedIndex then
-				-- Unhighlight all
-				for line=1,#ZbGm.frame.table do
-					ZbGm.frame.table[line]:UnlockHighlight();
+			if button=="LeftButton" then
+
+				-- Save in the main table which is selected.
+				if ZbGm.frame.selectedIndex then
+					-- Unhighlight all
+					for line=1,#ZbGm.frame.table do
+						ZbGm.frame.table[line]:UnlockHighlight();
+					end
 				end
+				ZbGm.frame.selectedIndex = lineplusoffset
+				self:LockHighlight();
+
+				-- Ensures a character can be set as alt.
+				if ZbGm.newMemberFrame and ZbGm.newMemberFrame:IsVisible() then
+					ZbGm.newMemberFrame.setAltBtn:Enable();
+				end
+
+				-- Clear what is selected "Player" member frame
+				ZbGm:MemberScrollTableClearSelection();
+
+				-- Setup member data
+				local mainChar = character;
+				if mainChar.parentNode then mainChar = mainChar.parentNode end
+
+				ZbGm:MemberViewSetCharacter(self, mainChar);
+				ZbGm:ShowMemberFrame();
+			else
+
+				ZbGm.frame.contextMenuFrame.character = character;
+				EasyMenu(ZbGm.contextMenu, ZbGm.frame.contextMenuFrame, "cursor", 0 , 0, "MENU");
 			end
-			ZbGm.frame.selectedIndex = lineplusoffset
-			self:LockHighlight();
 
-			-- Ensures a character can be set as alt.
-			if ZbGm.newMemberFrame and ZbGm.newMemberFrame:IsVisible() then
-				ZbGm.newMemberFrame.setAltBtn:Enable();
-			end
-
-			-- Clear what is selected "Player" member frame
-			ZbGm:MemberScrollTableClearSelection();
-
-			-- Setup member data
-			local mainChar = character;
-			if mainChar.parentNode then mainChar = mainChar.parentNode end
-
-			ZbGm:MemberViewSetCharacter(self, mainChar);
-			ZbGm:ShowMemberFrame();
 		end
 	end
 end
@@ -1316,7 +1361,6 @@ function ZbGm:CreateMainFrame()
 	mf.totalMembers = 0;
 
 
-
 	mf:SetScript("OnEvent", ZbGm.OnEvent)
 	mf:SetScript("OnHide", function(self, event)
 		-- Hide Child Frames if main frame is hidden.
@@ -1334,6 +1378,8 @@ function ZbGm:CreateMainFrame()
 	background:SetPoint("TOPLEFT", mf, 10, -28);
 	background:SetPoint("BOTTOMRIGHT", mf, -6, 345);
 	--]]
+
+	mf.contextMenuFrame = CreateFrame("Frame", "ZgBmContextMenuFrame", UIParent, "UIDropDownMenuTemplate")
 
 
 	mf.activeStatusBar = CreateFrame("StatusBar", nil, mf)
@@ -1431,18 +1477,14 @@ function ZbGm:CreateMainFrame()
 	mf.scrollBar:SetPoint("TOPLEFT", nameSortBtn, "BOTTOMLEFT", 0, -1);
 	mf.scrollBar:SetPoint("BOTTOMRIGHT", mf, -30, 40);
 
-	local menu = {
-		{ text = "Character", isTitle = true},
-		{ text = "Copy Name", func = function() print("You've chosen option 1"); end },
-		{ text = "Officer Note", func = function() print("You've chosen option 2"); end },
-		{ text = "Note", func = function() print("You've chosen option 3"); end },
-	}
-
 	mf.table = {}
 
 	for i = 1, 15 do
 		mf.table[i] = CreateFrame("Button", "zbGuildManagerMainFrameTableItem" .. i, mf, "zbGMTableButtonTemplate");
 		mf.table[i]:SetPoint("TOPLEFT", nameSortBtn, "BOTTOMLEFT", 4, (i-1)*-20-6);
+
+		-- Button's only respond to LeftButton, unless you do this.
+		mf.table[i]:RegisterForClicks("AnyDown");
 
 		mf.table[i]:SetScript("OnClick", function(self, button)
 			ZbGm:ScrollTable_OnClick(self, i, button);
