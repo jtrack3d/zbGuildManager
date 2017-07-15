@@ -308,7 +308,7 @@ function ZbGm.CopyCharacterName(self, arg1, arg2, checked)
 		ZbGm:Debug(ZbGm.frame.contextMenuFrame.character.full);
 		_G.StaticPopupDialogs["ZbGm_CopyCharacterName"] =
 		_G.StaticPopupDialogs["ZbGm_CopyCharacterName"] or {
-					text = "Use CTRL+C to copy name",
+					text = L["Use CTRL+C to copy name"],
 					button1 = OKAY,
 					whileDead = true,
 					hideOnEscape = true,
@@ -1008,13 +1008,6 @@ function ZbGm:MemberViewSetCharacter(self, characterNode)
 	ZbGm:UpdateMemberViewTable();
 end
 
-ZbGm.contextMenu = {
-	{ text = "Character", isTitle = true},
-	{ text = "Copy Name", hasArrow = false, func = ZbGm.CopyCharacterName },
-	{ text = "Officer Note", func = ZbGm.EditOfficerNote },
-	{ text = "Note", func = function() print("You've chosen option 3"); end },
-}
-
 -- Main Window Item Mouse Click
 function ZbGm:ScrollTable_OnClick(self, line, button)
 	local lineplusoffset = line + FauxScrollFrame_GetOffset(ZbGm.frame.scrollBar);
@@ -1381,6 +1374,12 @@ function ZbGm:CreateMainFrame()
 
 	mf.contextMenuFrame = CreateFrame("Frame", "ZgBmContextMenuFrame", UIParent, "UIDropDownMenuTemplate")
 
+	ZbGm.contextMenu = {
+		{ text = "Character", isTitle = true},
+		{ text = L["Copy Name"], hasArrow = false, func = ZbGm.CopyCharacterName },
+		{ text = "Officer Note", func = ZbGm.EditOfficerNote },
+		{ text = "Note", func = function() print("You've chosen option 3"); end },
+	}
 
 	mf.activeStatusBar = CreateFrame("StatusBar", nil, mf)
 	mf.activeStatusBar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
@@ -1913,9 +1912,16 @@ function ZbGm.OptionsOnEvent(self, event, ...)
 end
 
 function ZbGm:OptionsClose()
-	--print("ZbGm: Options Close");
+	ZbGm:Debug("ZbGm: Options Close");
 	ZbGmOptions.debug = zbGmOptionsFrame_Debug:GetChecked();
 	ZbGmOptions.dateDisplayFormat = UIDropDownMenu_GetText(zbGmOptionsFrame_FormatDateDropDown);
+	ZbGmOptions.minimap.hide = not zbGmOptionsFrame_Minibutton:GetChecked();
+
+	if ZbGmOptions.minimap.hide then
+		icon:Hide(ZBGMICON);
+	else
+		icon:Show(ZBGMICON);
+	end
 	--print (ZbGmOptions.debug);
 end
 
@@ -1925,14 +1931,16 @@ function ZbGm:OptionsCancelLoad()
 		zbGmOptionsFrame_Debug:SetChecked(ZbGmOptions.debug);
 	end
 
+	if ZbGmOptions.minimap then
+		zbGmOptionsFrame_Minibutton:SetChecked(not ZbGmOptions.minimap.hide);
+	end
+
 	if ZbGmOptions.dateDisplayFormat then
 		UIDropDownMenu_SetText(zbGmOptionsFrame_FormatDateDropDown, ZbGmOptions.dateDisplayFormat);
 	else
 		UIDropDownMenu_SetText(zbGmOptionsFrame_FormatDateDropDown, "MM-DD-YY");
 	end
 end
-
---
 
 -- The GUI OnLoad function.
 --
@@ -1952,8 +1960,10 @@ function ZbGm:CreateOptionsGUI()
 	-- Tells add-on the data is loaded.
 	ZbGm.optionsPanel:RegisterEvent("ADDON_LOADED");
 
+	-- Set localized text.
 	zbGmOptionsFrameFormatDate:SetText(L["Date Display Format"]);
     zbGmOptionsFrame_DebugText:SetText(L["Debug"]);
+	zbGmOptionsFrame_MinibuttonText:SetText(L["Minimap Icon"]);
 
     mf.name = "ZbGuildManager";
     mf.okay = function (self) ZbGm:OptionsClose(); end;
