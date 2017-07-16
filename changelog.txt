@@ -1,3 +1,7 @@
+1.1 Context menu
+    - Added "copy character" to allow copying character names with special characters.
+    - Fixed buttons on new character to disable on no selection.
+    - Added GUI option to disable new minimap button icon.
 1.0 Release
     - Figure it's pretty close to release worthy.
     - Added minimap icon.
