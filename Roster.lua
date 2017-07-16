@@ -412,10 +412,10 @@ function ZR.ReconstructLists(self, savedDatesDB)
     self.AbsentCount = 0;
 
     for idx in pairs(self.players) do
-        if self.players[idx].paretNode == nil then
+        if self.players[idx].parentNode == nil then
             local deltaLog = (time() - self.players[idx].lastlogin) / (86400*7)
             --print (deltaLog)
-            if deltaLog <= 2 then   		-- Green
+            if deltaLog <= 2 then   	-- Green
                 self.ActiveCount = self.ActiveCount + 1;
             elseif deltaLog <= 4 then  	-- Yellow
                 self.SemiActiveCount = self.SemiActiveCount + 1;
