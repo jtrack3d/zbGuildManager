@@ -1059,11 +1059,12 @@ function ZbGm:NewMemberScrollTable_OnClick(self, line)
 		if ZbGm.newMemberFrame.selectedIndex then
 			-- Unhighlight all
 			for line=1,#ZbGm.newMemberFrame.table do
-				_G["zbGmNewMemberTableItem"..line]:UnlockHighlight()
+				_G["zbGmNewMemberTableItem"..line]:UnlockHighlight();
 			end
 		end
-		ZbGm.newMemberFrame.selectedIndex = lineplusoffset
-		self:LockHighlight()
+		ZbGm.newMemberFrame.selectedIndex = lineplusoffset;
+		self:LockHighlight();
+		ZbGm.newMemberFrame.setMainBtn:Enable();
 
 		-- Disable Set Alt button if another toon is a child of this one, can only be "Set Main"
 		-- Or Set Main's date.
@@ -1162,10 +1163,8 @@ function ZbGm:UpdateMemberViewTable()
 end
 
 function ZbGm:UpdateNewMemberViewTable()
-
 	local line;
 	local lineplusoffset; -- an index into our data calculated from the scroll offset
-	--local toon = ZbGm.roster[ZbGm.memberframe.main]
 
 	local numCharacters = #ZbGm.newMemberFrame.data
 
@@ -1202,7 +1201,6 @@ function ZbGm:UpdateNewMemberViewTable()
 			_G["zbGmNewMemberTableItem"..line]:Hide();
 		end
 	end
-
 end
 
 function ZbGm:ToggleVisibility()
@@ -1236,13 +1234,23 @@ function ZbGm:ShowNewMemberFrame()
 		ZbGm:CreateNewMemberFrame()
 	end
 
+	-- See if reason to show dialog.
 	if ZbGm.ZRoster:HasUnassociated() then
+
+		-- Configure the dialog with current unassociated characters.
 		local unassoc = ZbGm.ZRoster:BuildUnassociatedList();
 		ZbGm.newMemberFrame.data = unassoc;
 		ZbGm.frame.unassocBtn.Glow:Stop();
 
-		ZbGm:UpdateNewMemberViewTable()
+		-- Clear selected and disable buttons, because no selected.
+		ZbGm.newMemberFrame.selectedIndex = nil;
+		ZbGm.newMemberFrame.setMainBtn:Disable();
+		ZbGm.newMemberFrame.setAltBtn:Disable();
 
+		-- Update the list of charactesr on the dialog.
+		ZbGm:UpdateNewMemberViewTable();
+
+		-- If not visible make dialog visible.
 		if not self.newMemberFrame:IsVisible() then
 			self.newMemberFrame:SetPoint("TOPRIGHT", ZbGm.frame, "TOPLEFT", 1, -15)
 			PlaySound("igMainMenuOpen");
@@ -1323,7 +1331,6 @@ function ZbGm:OnLeave(self, motion)
 	GameTooltip:Hide()
 end
 
-
 --
 -- ZbGm:CreateMainFrame - Creates the main window.
 --
@@ -1353,7 +1360,6 @@ function ZbGm:CreateMainFrame()
 
 	mf.totalMembers = 0;
 
-
 	mf:SetScript("OnEvent", ZbGm.OnEvent)
 	mf:SetScript("OnHide", function(self, event)
 		-- Hide Child Frames if main frame is hidden.
@@ -1375,10 +1381,10 @@ function ZbGm:CreateMainFrame()
 	mf.contextMenuFrame = CreateFrame("Frame", "ZgBmContextMenuFrame", UIParent, "UIDropDownMenuTemplate")
 
 	ZbGm.contextMenu = {
-		{ text = "Character", isTitle = true},
+		{ text = L["Character"], isTitle = true},
 		{ text = L["Copy Name"], hasArrow = false, func = ZbGm.CopyCharacterName },
-		{ text = "Officer Note", func = ZbGm.EditOfficerNote },
-		{ text = "Note", func = function() print("You've chosen option 3"); end },
+	--[[{ text = "Officer Note", func = ZbGm.EditOfficerNote },
+		{ text = "Note", func = function() print("You've chosen option 3"); end },--]]
 	}
 
 	mf.activeStatusBar = CreateFrame("StatusBar", nil, mf)

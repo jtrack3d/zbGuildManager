@@ -144,7 +144,13 @@ function ZR.DumpPlayer(self, mainIndex)
     return;
   end
 
-  print (string.format("Main %s (parent %s)",node.name, "nil" or node.parentNode));
+  local parentNodeName = nil;
+  if node.parentNode == nil then
+      parentNodeName = "nil";
+  else
+      parentNodeName = node.parentNode.full;
+  end
+  print (string.format("Main %s (parent %s)",node.name, parentNodeName));
   local child = node.childNode;
 
   while child do
