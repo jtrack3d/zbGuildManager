@@ -760,7 +760,6 @@ function ZbGm:LoadRosterFromServer()
 		ZbGm:Debug("Realm ".. gRealm);
 
 		ZbGm.frame.totalMembers = numMembers;
-		ZbGm.frame.statusScale = ZbGm.frame.statuswidth / numMembers;
 
 		--gRealm = "KulTiras"
 
@@ -823,6 +822,9 @@ function ZbGm:LoadRosterFromServer()
 			-- Update saved variables.
 			ZbGm.ZRoster:UpdateHistorySave(ZbGmHistoryDB.MemberJoinDates);
 		end
+
+		local totalCount = ZbGm.ZRoster.ActiveCount + ZbGm.ZRoster.SemiActiveCount + ZbGm.ZRoster.InactiveCount + ZbGm.ZRoster.AbsentCount;
+		ZbGm.frame.statusScale = ZbGm.frame.statuswidth / totalCount;
 
 		-- Update the Bar Charts
 		ZbGm.frame.activeStatusBar:SetWidth(math.max(ZbGm.ZRoster.ActiveCount*ZbGm.frame.statusScale,1));
@@ -1305,6 +1307,25 @@ function ZbGm:HideNewMemberFrame()
 	end
 end
 
+function ZbGm:OnBarEnter(self, motion)
+	ZbGm:Debug("Bar Enter");
+
+	local totalCount = ZbGm.ZRoster.ActiveCount + ZbGm.ZRoster.SemiActiveCount + ZbGm.ZRoster.InactiveCount + ZbGm.ZRoster.AbsentCount;
+
+	-- Setup the tool tip and display it.
+	GameTooltip:SetOwner(self, "ANCHOR_LEFT");
+    GameTooltip:SetText(string.format("Active %d (%0.1f%%)", ZbGm.ZRoster.ActiveCount, ZbGm.ZRoster.ActiveCount/totalCount*100));
+	GameTooltip:AddLine(string.format("Semi %d (%0.1f%%)", ZbGm.ZRoster.SemiActiveCount, ZbGm.ZRoster.SemiActiveCount/totalCount*100));
+	GameTooltip:AddLine(string.format("Inactive %d (%0.1f%%)", ZbGm.ZRoster.InactiveCount, ZbGm.ZRoster.InactiveCount/totalCount*100));
+	GameTooltip:AddLine(string.format("Absent %d (%0.1f%%)", ZbGm.ZRoster.AbsentCount, ZbGm.ZRoster.AbsentCount/totalCount*100));
+	GameTooltip:Show();
+end
+
+function ZbGm:OnBarLeave(self, motion)
+	ZbGm:Debug("Bar Leave");
+	GameTooltip:Hide();
+end
+
 --
 -- ZbGm:OnEnter - Handles Tooltip display.
 --
@@ -1397,6 +1418,14 @@ function ZbGm:CreateMainFrame()
 	mf.activeStatusBar:SetPoint("TOPLEFT",mf,14,-30);
 	mf.activeStatusBar:SetStatusBarColor(0,1,0)
 
+	mf.activeStatusBar:SetScript("OnEnter", function(self, motion)
+		ZbGm:OnBarEnter(mf.activeStatusBar, motion);
+	end)
+	mf.activeStatusBar:SetScript("OnLeave", function(self, motion)
+		ZbGm:OnBarLeave(mf.activeStatusBar, motion);
+	end)
+
+
 	mf.lessActiveStatusBar = CreateFrame("StatusBar", nil, mf)
 	mf.lessActiveStatusBar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
 	mf.lessActiveStatusBar:GetStatusBarTexture():SetHorizTile(false)
@@ -1405,28 +1434,48 @@ function ZbGm:CreateMainFrame()
 	mf.lessActiveStatusBar:SetWidth(1);
 	mf.lessActiveStatusBar:SetHeight(10)
 	mf.lessActiveStatusBar:SetPoint("TOPLEFT",mf.activeStatusBar,"TOPRIGHT",0,0);
-	mf.lessActiveStatusBar:SetStatusBarColor(1,1,0)
+	mf.lessActiveStatusBar:SetStatusBarColor(1,1,0);
 
-	mf.InactiveStatusBar = CreateFrame("StatusBar", nil, mf)
-	mf.InactiveStatusBar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
-	mf.InactiveStatusBar:GetStatusBarTexture():SetHorizTile(false)
-	mf.InactiveStatusBar:SetMinMaxValues(0, 100)
-	mf.InactiveStatusBar:SetValue(100)
+	mf.lessActiveStatusBar:SetScript("OnEnter", function(self, motion)
+		ZbGm:OnBarEnter(mf.lessActiveStatusBar, motion);
+	end)
+	mf.lessActiveStatusBar:SetScript("OnLeave", function(self, motion)
+		ZbGm:OnBarLeave(mf.lessActiveStatusBar, motion);
+	end)
+
+	mf.InactiveStatusBar = CreateFrame("StatusBar", nil, mf);
+	mf.InactiveStatusBar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar");
+	mf.InactiveStatusBar:GetStatusBarTexture():SetHorizTile(false);
+	mf.InactiveStatusBar:SetMinMaxValues(0, 100);
+	mf.InactiveStatusBar:SetValue(100);
 	mf.InactiveStatusBar:SetWidth(1);
-	mf.InactiveStatusBar:SetHeight(10)
+	mf.InactiveStatusBar:SetHeight(10);
 	mf.InactiveStatusBar:SetPoint("TOPLEFT",mf.lessActiveStatusBar,"TOPRIGHT",0,0);
-	mf.InactiveStatusBar:SetStatusBarColor(1,0.7,0)
+	mf.InactiveStatusBar:SetStatusBarColor(1,0.7,0);
 
-	mf.AbsentStatusBar = CreateFrame("StatusBar", nil, mf)
-	mf.AbsentStatusBar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
-	mf.AbsentStatusBar:GetStatusBarTexture():SetHorizTile(false)
-	mf.AbsentStatusBar:SetMinMaxValues(0, 100)
-	mf.AbsentStatusBar:SetValue(100)
+	mf.InactiveStatusBar:SetScript("OnEnter", function(self, motion)
+		ZbGm:OnBarEnter(mf.InactiveStatusBar, motion);
+	end)
+	mf.InactiveStatusBar:SetScript("OnLeave", function(self, motion)
+		ZbGm:OnBarLeave(mf.InactiveStatusBar, motion);
+	end)
+
+	mf.AbsentStatusBar = CreateFrame("StatusBar", nil, mf);
+	mf.AbsentStatusBar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar");
+	mf.AbsentStatusBar:GetStatusBarTexture():SetHorizTile(false);
+	mf.AbsentStatusBar:SetMinMaxValues(0, 100);
+	mf.AbsentStatusBar:SetValue(100);
 	mf.AbsentStatusBar:SetWidth(1);
-	mf.AbsentStatusBar:SetHeight(10)
+	mf.AbsentStatusBar:SetHeight(10);
 	mf.AbsentStatusBar:SetPoint("TOPLEFT",mf.InactiveStatusBar,"TOPRIGHT",0,0);
 	mf.AbsentStatusBar:SetStatusBarColor(1,0,0);
 
+	mf.AbsentStatusBar:SetScript("OnEnter", function(self, motion)
+		ZbGm:OnBarEnter(mf.AbsentStatusBar, motion);
+	end)
+	mf.AbsentStatusBar:SetScript("OnLeave", function(self, motion)
+		ZbGm:OnBarLeave(mf.AbsentStatusBar, motion);
+	end)
 
 	local nameSortBtn = CreateFrame("Button", "zbGuildManagerMainFrameNameSortButton", mf, "zbGMSortButtonTemplate")
 	nameSortBtn:SetSize(125,25)
