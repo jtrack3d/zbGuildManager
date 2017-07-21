@@ -1313,7 +1313,7 @@ function ZbGm:OnBarEnter(self, motion)
 	-- Setup the tool tip and display it.
 	GameTooltip:SetOwner(self, "ANCHOR_LEFT");
 	GameTooltip:SetText(L["Guild Activity"]);
-    GameTooltip:SetText(L["Active"], string.format("%d (%0.1f%%)", ZbGm.ZRoster.ActiveCount, ZbGm.ZRoster.ActiveCount/totalCount*100));
+    GameTooltip:AddDoubleLine(L["Active"], string.format("%d (%0.1f%%)", ZbGm.ZRoster.ActiveCount, ZbGm.ZRoster.ActiveCount/totalCount*100));
 	GameTooltip:AddDoubleLine(L["Semi"], string.format("%d (%0.1f%%)", ZbGm.ZRoster.SemiActiveCount, ZbGm.ZRoster.SemiActiveCount/totalCount*100));
 	GameTooltip:AddDoubleLine(L["Inactive"], string.format("%d (%0.1f%%)", ZbGm.ZRoster.InactiveCount, ZbGm.ZRoster.InactiveCount/totalCount*100));
 	GameTooltip:AddDoubleLine(L["Absent"], string.format("%d (%0.1f%%)", ZbGm.ZRoster.AbsentCount, ZbGm.ZRoster.AbsentCount/totalCount*100));

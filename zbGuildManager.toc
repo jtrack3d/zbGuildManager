@@ -2,7 +2,7 @@
 ## Title: zbGuildManager
 ## Notes: Manages main/alts relationships
 ## Author: jtrack3d
-## Version: 1.1a Release
+## Version: 1.1b Release
 ## X-Category: Interface Enhancements
 ## SavedVariables: ZbGmOptions, ZbGmHistoryDB
 

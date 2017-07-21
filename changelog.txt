@@ -1,3 +1,4 @@
+1.1b Clearer activity tooltip
 1.1a Fixed activity graph
     - Activity graph was incorrectly counting characters, not players.
     - Added tooltip on graph to show numbers.
