@@ -1308,21 +1308,19 @@ function ZbGm:HideNewMemberFrame()
 end
 
 function ZbGm:OnBarEnter(self, motion)
-	ZbGm:Debug("Bar Enter");
-
 	local totalCount = ZbGm.ZRoster.ActiveCount + ZbGm.ZRoster.SemiActiveCount + ZbGm.ZRoster.InactiveCount + ZbGm.ZRoster.AbsentCount;
 
 	-- Setup the tool tip and display it.
 	GameTooltip:SetOwner(self, "ANCHOR_LEFT");
-    GameTooltip:SetText(string.format("Active %d (%0.1f%%)", ZbGm.ZRoster.ActiveCount, ZbGm.ZRoster.ActiveCount/totalCount*100));
-	GameTooltip:AddLine(string.format("Semi %d (%0.1f%%)", ZbGm.ZRoster.SemiActiveCount, ZbGm.ZRoster.SemiActiveCount/totalCount*100));
-	GameTooltip:AddLine(string.format("Inactive %d (%0.1f%%)", ZbGm.ZRoster.InactiveCount, ZbGm.ZRoster.InactiveCount/totalCount*100));
-	GameTooltip:AddLine(string.format("Absent %d (%0.1f%%)", ZbGm.ZRoster.AbsentCount, ZbGm.ZRoster.AbsentCount/totalCount*100));
+	GameTooltip:SetText(L["Guild Activity"]);
+    GameTooltip:SetText(L["Active"], string.format("%d (%0.1f%%)", ZbGm.ZRoster.ActiveCount, ZbGm.ZRoster.ActiveCount/totalCount*100));
+	GameTooltip:AddDoubleLine(L["Semi"], string.format("%d (%0.1f%%)", ZbGm.ZRoster.SemiActiveCount, ZbGm.ZRoster.SemiActiveCount/totalCount*100));
+	GameTooltip:AddDoubleLine(L["Inactive"], string.format("%d (%0.1f%%)", ZbGm.ZRoster.InactiveCount, ZbGm.ZRoster.InactiveCount/totalCount*100));
+	GameTooltip:AddDoubleLine(L["Absent"], string.format("%d (%0.1f%%)", ZbGm.ZRoster.AbsentCount, ZbGm.ZRoster.AbsentCount/totalCount*100));
 	GameTooltip:Show();
 end
 
 function ZbGm:OnBarLeave(self, motion)
-	ZbGm:Debug("Bar Leave");
 	GameTooltip:Hide();
 end
 
