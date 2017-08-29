@@ -17,6 +17,7 @@ L["Copy Name"] = "Copy Name";
 L["Date Display Format"] = "Date Display Format";
 L["Debug"] = "Debug";
 L["Dissociate"] = "Dissociate";
+L["Edit Officer Note"] = "Edit Officer Note";
 L["Export"] = "Export";
 L["Export Data"] = "Export Data";
 L["Guild Activity"] = "Guild Activity";

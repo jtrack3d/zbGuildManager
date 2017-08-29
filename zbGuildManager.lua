@@ -379,7 +379,7 @@ function ZbGm:SortMainBy(column)
 	else
 		ZbGm.ZRoster.sortIndexBy = column
 	end
-	PlaySound("UChatScrollButton");
+	PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON);
 	ZbGm.frame.selectedIndex = nil
 	ZbGm.ZRoster:SortIndex()
 	ZbGm:UpdateMainViewTable()
@@ -1078,7 +1078,7 @@ function ZbGm:NewMemberScrollTable_OnClick(self, line)
 			ZbGm.newMemberFrame.setAltBtn:Enable();
 		end
 	end
-	PlaySound("UChatScrollButton");
+	PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON);
 end
 
 function ZbGm:MemberScrollTable_OnClick(self, line)
@@ -1087,11 +1087,11 @@ function ZbGm:MemberScrollTable_OnClick(self, line)
 		if not ZbGm.memberframe.selectedList[lineplusoffset] then
 			ZbGm.memberframe.selectedList[lineplusoffset] = true;
 			self:LockHighlight()
-			PlaySound("UChatScrollButton");
+			PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON);
 		else
 			ZbGm.memberframe.selectedList[lineplusoffset] = false;
 			self:UnlockHighlight()
-			PlaySound("UChatScrollButton");
+			PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON);
 		end
 	end
 end
@@ -1217,7 +1217,7 @@ function ZbGm:ToggleVisibility()
 		ZbGm.frame:UnregisterEvent("GUILD_ROSTER_UPDATE");
 		self.frame:Hide()
 	else
-		PlaySound("igMainMenuOpen");
+		PlaySound(SOUNDKIT.IG_MAINMENU_OPEN);
 		ZbGm.frame:RegisterEvent("GUILD_ROSTER_UPDATE");
 		GuildRoster();
 		self.frame:Show();
@@ -1255,7 +1255,7 @@ function ZbGm:ShowNewMemberFrame()
 		-- If not visible make dialog visible.
 		if not self.newMemberFrame:IsVisible() then
 			self.newMemberFrame:SetPoint("TOPRIGHT", ZbGm.frame, "TOPLEFT", 1, -15)
-			PlaySound("igMainMenuOpen");
+			PlaySound(SOUNDKIT.IG_MAINMENU_OPEN);
 			self.newMemberFrame:Show()
 		end
 	else
@@ -1272,9 +1272,9 @@ function ZbGm:ShowMemberFrame()
 
 	-- Player softer sound if already visible.
 	if self.memberframe:IsVisible() then
-		PlaySound("UChatScrollButton");
+		PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON);
 	else
-		PlaySound("igMainMenuOpen");
+		PlaySound(SOUNDKIT.IG_MAINMENU_OPEN);
 	end
 
 	self.memberframe:Show()
@@ -1286,7 +1286,7 @@ function ZbGm:ShowExportFrame()
 	end
 	-- reset location
 	self.exportframe:SetPoint("CENTER");
-	PlaySound("igMainMenuOpen");
+	PlaySound(SOUNDKIT.IG_MAINMENU_OPEN);
 
 	ZbGm.exportframe.exportText:SetText(ZbGm.ZRoster:ExportCSV());
 
@@ -1295,14 +1295,14 @@ end
 
 function ZbGm:HideMemberFrame()
 	if self.memberframe then
-		PlaySound("igMainMenuClose");
+		PlaySound(SOUNDKIT.IG_MAINMENU_CLOSE);
 		self.memberframe:Hide()
 	end
 end
 
 function ZbGm:HideNewMemberFrame()
 	if self.newMemberFrame then
-		PlaySound("igMainMenuClose");
+		PlaySound(SOUNDKIT.IG_MAINMENU_CLOSE);
 		self.newMemberFrame:Hide()
 	end
 end
@@ -1382,7 +1382,7 @@ function ZbGm:CreateMainFrame()
 	mf:SetScript("OnEvent", ZbGm.OnEvent)
 	mf:SetScript("OnHide", function(self, event)
 		-- Hide Child Frames if main frame is hidden.
-		PlaySound("igMainMenuClose");
+		PlaySound(SOUNDKIT.IG_MAINMENU_CLOSE);
 		ZbGm:HideMemberFrame()
 		ZbGm:HideNewMemberFrame()
 	end)
@@ -1399,12 +1399,20 @@ function ZbGm:CreateMainFrame()
 
 	mf.contextMenuFrame = CreateFrame("Frame", "ZgBmContextMenuFrame", UIParent, "UIDropDownMenuTemplate")
 
-	ZbGm.contextMenu = {
-		{ text = L["Character"], isTitle = true},
-		{ text = L["Copy Name"], hasArrow = false, func = ZbGm.CopyCharacterName },
-	--[[{ text = "Officer Note", func = ZbGm.EditOfficerNote },
-		{ text = "Note", func = function() print("You've chosen option 3"); end },--]]
-	}
+
+
+	if CanEditOfficerNote() then
+		ZbGm.contextMenu = {
+			{ text = L["Character"], isTitle = true},
+			{ text = L["Copy Name"], hasArrow = false, func = ZbGm.CopyCharacterName },
+			{ text = L["Edit Officer Note"], func = ZbGm.EditOfficerNote },
+		}
+	else
+		ZbGm.contextMenu = {
+			{ text = L["Character"], isTitle = true},
+			{ text = L["Copy Name"], hasArrow = false, func = ZbGm.CopyCharacterName },
+		}
+	end
 
 	mf.activeStatusBar = CreateFrame("StatusBar", nil, mf)
 	mf.activeStatusBar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
