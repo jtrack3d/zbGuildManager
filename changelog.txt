@@ -1,3 +1,4 @@
+1.1c Fixed for 7.3, PlaySound changed.
 1.1b Clearer activity tooltip
 1.1a Fixed activity graph
     - Activity graph was incorrectly counting characters, not players.
