@@ -1769,6 +1769,9 @@ function ZbGm:CreateMemberFrame()
 		mf.setRankBtn:Disable()
 	end
 
+	mf.setRankBtn:Disable()
+
+	
 	-- Dissociate Button
 	mf.dissociateBtn = CreateFrame("Button", "zbGmPlayerDissociateBtn", mf, "UIPanelButtonTemplate")
 	mf.dissociateBtn:SetSize(92,25)
@@ -1795,6 +1798,8 @@ function ZbGm:CreateMemberFrame()
 	else
 		mf.kickBtn:Disable()
 	end
+
+	mf.kickBtn:Disable()
 
 	ZbGm.memberframe       = mf
 	ZbGm.memberframe.rankDropdown = dropDown
