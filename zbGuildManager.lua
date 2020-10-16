@@ -65,6 +65,10 @@ local function _DateFromString(dateString)
 		pmonth,pday,pyear =  dateString:match("(%d+)/(%d+)/(%d+)");
 	end
 
+	if pmonth == nil then
+		pmonth,pday,pyear =  dateString:match("(%d%d)(%d%d)(%d%d)");
+	end
+
 	if pyear and pday and pmonth then
 		pyear  = tonumber(pyear);
 		pday   = tonumber(pday);
@@ -137,7 +141,7 @@ local function _StringFromDate(dateValue, display)
 
 			local displayformat = ZbGmOptions.dateDisplayFormat;
 			if displayFormat == nil then
-				displayFormat = "%m-%d-%y";
+				displayFormat = "%m%d%y";
 			end
 
 			local dateformat = formatConvert[displayformat];
@@ -433,7 +437,7 @@ function ZbGm.SetMain_OnAccept(self, data)
 		end
 
 		-- Update the player note.
-		ZbGm:UpdatePublicNote(newMainCharacter, dateString)
+		ZbGm:UpdatePublicNote(newMainCharacter, date("%m%d%y", dateValue, dateValue, dateValue))
 
 		-- Remove from the unassociated list.
 		table.remove(ZbGm.newMemberFrame.data,ZbGm.newMemberFrame.selectedIndex)
@@ -956,12 +960,12 @@ function ZbGm:UpdateMainViewTable()
 
 			if lastLog then
 				local deltaLog = (time() - lastLog) / (86400*7);
-				if deltaLog < 2 then   		-- Green
+				if deltaLog < 4 then   		-- Green
 					_G[baseElement.."LastLog"]:SetTextColor(0.0, 1.0, 0.0, 0.8);
-				elseif deltaLog < 4 then  	-- Yellow
+				elseif deltaLog < 13 then  	-- Yellow
 					--_G["zbGuildManagerMainFrameTableItem"..line.."ActiveBar"]:SetColorTexture(1.0, 1.0, 0.0, 0.4)
 					_G[baseElement.."LastLog"]:SetTextColor(1.0, 1.0, 0.0, 0.8);
-				elseif deltaLog < 19 then  	-- Orange
+				elseif deltaLog < 52 then  	-- Orange
 					_G[baseElement.."LastLog"]:SetTextColor(1.0, 0.7, 0.0, 0.8);
 				else						-- Red
 					_G[baseElement.."LastLog"]:SetTextColor(1.0, 0.0, 0.0, 0.8);
@@ -1219,7 +1223,7 @@ function ZbGm:ToggleVisibility()
 	else
 		PlaySound(SOUNDKIT.IG_MAINMENU_OPEN);
 		ZbGm.frame:RegisterEvent("GUILD_ROSTER_UPDATE");
-		GuildRoster();
+		C_GuildInfo.GuildRoster();
 		self.frame:Show();
 		--[[
 		if ZbGmOptions then
@@ -1348,6 +1352,10 @@ end
 --
 function ZbGm:OnLeave(self, motion)
 	GameTooltip:Hide()
+end
+
+function CanEditOfficerNote()
+	return true
 end
 
 --
@@ -1771,7 +1779,7 @@ function ZbGm:CreateMemberFrame()
 
 	mf.setRankBtn:Disable()
 
-	
+
 	-- Dissociate Button
 	mf.dissociateBtn = CreateFrame("Button", "zbGmPlayerDissociateBtn", mf, "UIPanelButtonTemplate")
 	mf.dissociateBtn:SetSize(92,25)

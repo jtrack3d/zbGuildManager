@@ -1,4 +1,4 @@
-## Interface: 70300
+## Interface: 90100
 ## Title: zbGuildManager
 ## Notes: Manages main/alts relationships
 ## Author: jtrack3d

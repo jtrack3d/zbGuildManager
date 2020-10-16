@@ -390,6 +390,19 @@ function ZR.ReconstructLists(self, savedDatesDB)
             else
                 self:InsertChildNode(node, parentNode);
             end
+
+        else
+            -- See if no join date.  If it doesn't have one fix it.
+            if savedDatesDB[idx] and node.joindate == 0 then
+                if savedDatesDB[idx].join > 0 then
+                    node.joindate = savedDatesDB[idx].join;
+                    print("zbGuildManager: Recovered missing main join date for " .. idx .. " as " .. node.joindate);
+                    --node.parentIndex = nil;
+
+                    --if not fixNotesList then fixNotesList = {} end
+                    --table.insert(fixNotesList, idx);
+                end
+            end
         end
 
         if node.parentNode then
@@ -415,11 +428,11 @@ function ZR.ReconstructLists(self, savedDatesDB)
         if self.players[idx].parentNode == nil then
             local deltaLog = (time() - self.players[idx].lastlogin) / (86400*7)
             --print (deltaLog)
-            if deltaLog <= 2 then   	-- Green
+            if deltaLog <= 4 then   	-- Green
                 self.ActiveCount = self.ActiveCount + 1;
-            elseif deltaLog <= 4 then  	-- Yellow
+            elseif deltaLog <= 13 then  	-- Yellow
                 self.SemiActiveCount = self.SemiActiveCount + 1;
-            elseif deltaLog < 19 then  	-- Orange
+            elseif deltaLog < 52 then  	-- Orange
                 self.InactiveCount = self.InactiveCount + 1;
             else						-- Red
                 self.AbsentCount = self.AbsentCount + 1;
